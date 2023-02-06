@@ -1,8 +1,16 @@
 # compiler
 
 ## how to use
-- compile with `make`
+- compile with 
+```
+make
+```
 
-- launch with `./parser.out`
-
-- clean work dir with `make clean`
+- launch with 
+```
+./parser.out
+```
+- clean work dir with 
+```
+make clean
+```
