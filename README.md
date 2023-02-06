@@ -1,16 +1,18 @@
 # compiler
 
-## how to use
-- compile with 
+
+## Parser
+
+### compile
 ```
 make
 ```
 
-- launch with 
+### launch
 ```
 ./parser.out
 ```
-- clean work dir with 
+### clean work directory
 ```
 make clean
 ```
