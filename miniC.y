@@ -1,48 +1,63 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 void yyerror (char const *s);
 int yylex();
+int symbols[100];
+int computeSymboleIndex(char token);
+int symbolVal(char symbol);
+void updateSymbol(char symbol, int val);
+int parseOperation(int a, int b, char op);
 %}
 
-%token IDENTIFICATEUR CONSTANTE VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
+%union {
+	int num;
+	char id;
+	char bin_op;
+}
+
+%token <id> IDENTIFICATEUR 
+%token <num> CONSTANTE 
+%token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
 %token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT
 %token GEQ LEQ EQ NEQ NOT EXTERN
+
+%type <num> expression condition
+%type <id> variable
+%type <bin_op> binary_op binary_rel binary_comp
+
 %left PLUS MOINS
 %left MUL DIV
 %left LSHIFT RSHIFT
 %left BOR BAND
 %left LAND LOR
-%nonassoc THEN
-%nonassoc ELSE
 %left OP
 %left REL
+%nonassoc THEN
+%nonassoc ELSE
+
 %start programme
 
 
 %%
-programme :
-		liste_declarations liste_fonctions
+programme :	liste_declarations liste_fonctions;
+liste_declarations  : 
+		  	liste_declarations declaration 
+		| 	;
+liste_fonctions : 	
+			liste_fonctions fonction
+		|   fonction
 ;
-liste_declarations :
-		liste_declarations declaration 
-	|	
+declaration :	type liste_declarateurs ';';
+liste_declarateurs  :	
+			liste_declarateurs ',' declarateur
+		|	declarateur
 ;
-liste_fonctions :
-		liste_fonctions fonction
-	|   fonction
-;
-declaration :
-		type liste_declarateurs ';'
-;
-liste_declarateurs :
-		liste_declarateurs ',' declarateur
-	|	declarateur
-;
-declarateur :
+declarateur :	
 		IDENTIFICATEUR
 	|	declarateur '[' CONSTANTE ']'
 ;
-fonction :
+fonction :	
 		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}'
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';'
 ;
@@ -52,14 +67,13 @@ type :
 ;
 liste_parms :	
 		liste_parms ',' parm
+	| parm
 	|	
 ;
-parm :	
-		INT IDENTIFICATEUR
-;
-liste_instructions :	
+parm :	INT IDENTIFICATEUR;
+liste_instructions  :	
 		liste_instructions instruction
-	|	
+	|	instruction
 ;
 instruction :	
 		iteration
@@ -82,69 +96,107 @@ selection :
 ;
 saut :	
 		BREAK ';'
-	|	RETURN ';'
-	|	RETURN expression ';'
+	 |	RETURN ';'
+	 |	RETURN expression ';'
 ;
-affectation :	
-		variable '=' expression {printf("affectaion: %s = %s \n", $1, $3);}
-;
-bloc :	
-		'{' liste_declarations liste_instructions '}'
-;
-appel :	
-		IDENTIFICATEUR '(' liste_expressions ')' ';'
-;
+affectation :	variable '=' expression 					{ updateSymbol($1, $3);};
+bloc :	'{' liste_declarations liste_instructions '}';
+appel :	IDENTIFICATEUR '(' liste_expressions ')' ';';
 variable :	
-		IDENTIFICATEUR
+		IDENTIFICATEUR	
 	|	variable '[' expression ']'
 ;
-expression :	
-		'(' expression ')'
-	|	expression binary_op expression %prec OP
-	|	MOINS expression
-	|	CONSTANTE
-	|	variable
-	|	IDENTIFICATEUR '(' liste_expressions ')'
+expression  :	
+		'(' expression ')'							{ $$ = $2;}
+	|	expression binary_op expression %prec OP	{ $$ = parseOperation($1, $3, $2); printf("%d %c %d = %d \n", $1, $2, $3, $$);}
+	|	MOINS expression							{ $$ = -$2;}
+	|	CONSTANTE									{ $$ = $1; printf("%d \n", $1);}
+	|	variable									{ $$ = symbolVal($1);}
+	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0;}
 ;
 liste_expressions :	
 		liste_expressions ',' expression
 	| 	expression
 ;
 condition :	
-		NOT '(' condition ')'
-	|	condition binary_rel condition %prec REL
-	|	'(' condition ')'
-	|	expression binary_comp expression
+		NOT '(' condition ')' 					{ $$ = !$3;}
+	|	condition binary_rel condition %prec REL { $$ = parseOperation($1, $3, $2);}
+	|	'(' condition ')' 						{ $$ = $2;}
+	|	expression binary_comp expression 		{ $$ = parseOperation($1, $3, $2);}
 ;
 binary_op :	
-		PLUS
-	|   MOINS
-	|	MUL
-	|	DIV
-	|   LSHIFT
-	|   RSHIFT
-	|	BAND
-	|	BOR
+		PLUS 	{ $$ = '+'; }
+	|   MOINS	{ $$ = '-'; }
+	|	MUL 	{ $$ = '*'; }
+	|	DIV 	{ $$ = '/'; }
+	|   LSHIFT	{ $$ = '<<'; }
+	|   RSHIFT	{ $$ = '>>'; }
+	|	BAND	{ $$ = '&'; }
+	|	BOR		{ $$ = '|'; }
 ;
 binary_rel :
-		LAND
-	|	LOR
+		LAND 	{ $$ = '&&'; }
+	|	LOR 	{ $$ = '||'; }
 ;
 binary_comp :
-		LT
-	|	GT
-	|	GEQ
-	|	LEQ
-	|	EQ
-	|	NEQ
+		LT		{ $$ = '<'; }
+	|	GT		{ $$ = '>'; }
+	|	GEQ		{ $$ = '>='; }
+	|	LEQ		{ $$ = '<='; }
+	|	EQ		{ $$ = '=='; }
+	|	NEQ		{ $$ = '!='; }
 ;
 %%
 
-int main (void) {
-	while (1) {
-		yyparse ();
+int parseOperation(int a, int b, char op) {
+	switch (op) {
+		case '+': return a + b;
+		case '-': return a - b;
+		case '*': return a * b;
+		case '/': return a / b;
+		case '<<': return a << b;
+		case '>>': return a >> b;
+		case '&': return a & b;
+		case '|': return a | b;
+
+		case '&&': return a && b;
+		case '||': return a || b;
+
+		case '<': return a < b;
+		case '>': return a > b;
+		case '>=': return a >= b;
+		case '<=': return a <= b;
+		case '==': return a == b;
+		case '!=': return a != b;
+		default: return 0;
 	}
-   return 0;
+}
+
+int computeSymboleIndex(char token) {
+	int idx = -1;
+	if (islower(token)) {
+		idx = token - 'a' + 26;
+	} else if (isupper(token)) {
+		idx = token - 'A';
+	}
+	return idx;
+}
+
+void updateSymbol(char symbol, int val) {
+	symbols[computeSymboleIndex(symbol)] = val;
+}
+
+int symbolVal(char symbol) {
+	return symbols[computeSymboleIndex(symbol)];
+}
+
+int main (void) {
+	int i;
+	for (i = 0; i < 100; i++) {
+		symbols[i] = 0;
+	}
+   
+   return yyparse();
 }
 
 void yyerror (char const *s) {

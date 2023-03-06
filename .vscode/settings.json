@@ -1,0 +1,10 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/nico/gitProjects/projetCompilation",
+            "binaryPath": "/home/nico/gitProjects/projetCompilation/parser.out",
+            "binaryArgs": []
+        }
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
+}
