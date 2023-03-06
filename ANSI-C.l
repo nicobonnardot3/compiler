@@ -56,9 +56,9 @@ int column = 1;
 "!="                    { column += 2; return NEQ; } // NEQ
 " "                     { column += 1; } // ESPACE
 
-"\n"                   {  column = 1; yylineno++; } // RETOUR A LA LIGNE
+"\n"                    {  column = 1; yylineno++; } // RETOUR A LA LIGNE
 
-[(){};=]                  { column += 1; return yytext[0]; } // PARENTHESE
+[(){};=,]               { column += 1; return yytext[0]; } // PARENTHESE
 
 
 .                       { char *str; sprintf(str, "Caractere non reconnu : %s\n\tligne : %d\n\t column %d\n", yytext, yylineno, column); yyerror(str); column++; }

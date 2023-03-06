@@ -14,6 +14,7 @@ int parseOperation(int a, int b, char op);
 	int num;
 	char id;
 	char bin_op;
+
 }
 
 %token <id> IDENTIFICATEUR 
