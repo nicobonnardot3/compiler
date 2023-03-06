@@ -173,7 +173,7 @@ int parseOperation(int a, int b, char op) {
 	}
 }
 
-int computeSymboleIndex(char token) {
+int computeSymboleIndex(char *token) {
 	int idx = -1;
 	if (islower(token)) {
 		idx = token - 'a' + 26;
