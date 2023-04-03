@@ -1,12 +1,17 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "hashTable/HashTable.h"
 void yyerror (char const *s);
 int yylex();
-int symbols[100];
-int computeSymboleIndex(char token);
-int symbolVal(char symbol);
-void updateSymbol(char symbol, int val);
+
+HashTable *hashTable;
+
+// int symbols[100];
+int computeSymboleIndex(char *token);
+void createSymbol(HashTable* table, char *symbol);
+int symbolVal(char *str);
+void updateSymbol(char *symbol, int val);
 int parseOperation(int a, int b, char op);
 %}
 
@@ -55,7 +60,7 @@ liste_declarateurs  :
 		|	declarateur
 ;
 declarateur :	
-		IDENTIFICATEUR
+		IDENTIFICATEUR					{ printf("variable: int %s;\n", $1 ); createSymbol(&hashTable, $1);}
 	|	declarateur '[' CONSTANTE ']'
 ;
 fonction :	
@@ -100,20 +105,20 @@ saut :
 	 |	RETURN ';'
 	 |	RETURN expression ';'
 ;
-affectation :	variable '=' expression 					{ updateSymbol($1, $3);};
+affectation :	variable '=' expression 					{ printf("variable: int %s;\n", $1 ); updateSymbol($1, $3);};
 bloc :	'{' liste_declarations liste_instructions '}';
 appel :	IDENTIFICATEUR '(' liste_expressions ')' ';';
 variable :	
-		IDENTIFICATEUR	
-	|	variable '[' expression ']'
+		IDENTIFICATEUR								{ $$ = $1;}
+	|	variable '[' expression ']' 				
 ;
 expression  :
-		'(' expression ')'							{ $$ = $2;}
+		'(' expression ')'							{ $$ = $2; printf("%d \n", $2);}
 	|	expression binary_op expression %prec OP	{ $$ = parseOperation($1, $3, $2); printf("%d %c %d = %d \n", $1, $2, $3, $$);}
-	|	MOINS expression							{ $$ = -$2;}
+	|	MOINS expression							{ $$ = -$2; printf("%d \n", $2);}
 	|	CONSTANTE									{ $$ = $1; printf("%d \n", $1);}
-	|	variable									{ $$ = symbolVal($1);}
-	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0;}
+	|	variable									{ $$ = symbolVal($1); printf("%d \n", $$);}
+	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0; printf("%d \n", $$);}
 ;
 liste_expressions :	
 		liste_expressions ',' expression
@@ -173,31 +178,64 @@ int parseOperation(int a, int b, char op) {
 	}
 }
 
-int computeSymboleIndex(char *token) {
-	int idx = -1;
-	if (islower(token)) {
-		idx = token - 'a' + 26;
-	} else if (isupper(token)) {
-		idx = token - 'A';
+void createSymbol(HashTable* table, char* key) {
+	Ht_item* item = create_item(key, 0);
+
+	// Computes the index.
+	int index = hash_function(key);
+
+	/* Ht_item* current_item = table->items[index]; */
+/* 
+	if (current_item == NULL)
+	{
+		// Key does not exist.
+		if (table->count == table->size)
+		{
+			// HashTable is full.
+			printf("Insert Error: Hash Table is full\n");
+			free_item(item);
+			return;
+		}
+
+		// Insert directly.
+		table->items[index] = item;
+		table->count++;
+	} */
+
+}
+
+void updateSymbol(char *str, int val) {
+	printf("Updating symbol \n");
+
+	int index = hash_function(str);
+	Ht_item* current_item = hashTable->items[index];
+	if (current_item != NULL) {
+		printf("Symbol not found \n");
+		return;
 	}
-	return idx;
+	current_item->value = val;
 }
 
-void updateSymbol(char symbol, int val) {
-	symbols[computeSymboleIndex(symbol)] = val;
-}
+int symbolVal(char *str) {
+	int index = hash_function(str);
+	Ht_item* current_item = hashTable->items[index];
 
-int symbolVal(char symbol) {
-	return symbols[computeSymboleIndex(symbol)];
+	if (current_item != NULL)
+		{
+			if (strcmp(current_item->key, str) == 0)
+				return current_item->value;
+    }
+
+	return NULL;
 }
 
 int main (void) {
-	int i;
-	for (i = 0; i < 100; i++) {
-		symbols[i] = 0;
-	}
-   
-   return yyparse();
+   hashTable = create_table(50000);
+   createSymbol(&hashTable, "abr");
+
+   print_table(&hashTable);
+   /* return yyparse(); */
+   return 0;
 }
 
 void yyerror (char const *s) {

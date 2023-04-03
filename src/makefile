@@ -1,5 +1,5 @@
 ANSI-C: lex.yy.c y.tab.c
-	gcc -g lex.yy.c y.tab.c -o parser.out
+	gcc -g lex.yy.c hashTable/HashTable.c y.tab.c  -o parser.out
 
 lex.yy.c: y.tab.c ANSI-C.l
 	lex ANSI-C.l
