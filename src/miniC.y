@@ -107,7 +107,7 @@ variable :
 		IDENTIFICATEUR	
 	|	variable '[' expression ']'
 ;
-expression  :	
+expression  :
 		'(' expression ')'							{ $$ = $2;}
 	|	expression binary_op expression %prec OP	{ $$ = parseOperation($1, $3, $2); printf("%d %c %d = %d \n", $1, $2, $3, $$);}
 	|	MOINS expression							{ $$ = -$2;}
