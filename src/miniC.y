@@ -2,17 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "hashTable/HashTable.h"
-void yyerror (char const *s);
-int yylex();
 
-HashTable *hashTable;
+extern HashTable *hashTable;
+extern int parseOperation(int a, int b, char op);
+extern void createSymbol(HashTable* table, char* key);
+extern void updateSymbol(char *str, int val);
+extern int symbolVal(char *str);
+extern void yyerror (char const *s);
+extern int yylex();
 
-// int symbols[100];
-int computeSymboleIndex(char *token);
-void createSymbol(HashTable* table, char *symbol);
-int symbolVal(char *str);
-void updateSymbol(char *symbol, int val);
-int parseOperation(int a, int b, char op);
 %}
 
 %union {
@@ -46,21 +44,23 @@ int parseOperation(int a, int b, char op);
 
 
 %%
-programme :	liste_declarations liste_fonctions;
+programme :
+	liste_declarations liste_fonctions;
 liste_declarations  : 
 		  	liste_declarations declaration 
 		| 	;
-liste_fonctions : 	
+liste_fonctions :
 			liste_fonctions fonction
 		|   fonction
 ;
-declaration :	type liste_declarateurs ';';
+declaration :
+	type liste_declarateurs ';';
 liste_declarateurs  :	
 			liste_declarateurs ',' declarateur
 		|	declarateur
 ;
 declarateur :	
-		IDENTIFICATEUR					{ printf("variable: int %s;\n", $1 ); createSymbol(&hashTable, $1);}
+		IDENTIFICATEUR					{ printf("variable: int %s;\n", $1 ); createSymbol(hashTable, $1);}
 	|	declarateur '[' CONSTANTE ']'
 ;
 fonction :	
@@ -76,7 +76,8 @@ liste_parms :
 	| parm
 	|	
 ;
-parm :	INT IDENTIFICATEUR;
+parm :
+	INT IDENTIFICATEUR;
 liste_instructions  :	
 		liste_instructions instruction
 	|	instruction
@@ -100,14 +101,17 @@ selection :
 	|	CASE CONSTANTE ':' instruction
 	|	DEFAULT ':' instruction
 ;
-saut :	
+saut :
 		BREAK ';'
 	 |	RETURN ';'
 	 |	RETURN expression ';'
 ;
-affectation :	variable '=' expression 					{ printf("variable: int %s;\n", $1 ); updateSymbol($1, $3);};
-bloc :	'{' liste_declarations liste_instructions '}';
-appel :	IDENTIFICATEUR '(' liste_expressions ')' ';';
+affectation :
+	variable '=' expression 					{ printf("variable: int %s;\n", $1 ); updateSymbol($1, $3);};
+bloc :
+	'{' liste_declarations liste_instructions '}';
+appel :
+	IDENTIFICATEUR '(' liste_expressions ')' ';';
 variable :	
 		IDENTIFICATEUR								{ $$ = $1;}
 	|	variable '[' expression ']' 				
@@ -153,91 +157,3 @@ binary_comp :
 	|	NEQ		{ $$ = '!='; }
 ;
 %%
-
-int parseOperation(int a, int b, char op) {
-	switch (op) {
-		case '+': return a + b;
-		case '-': return a - b;
-		case '*': return a * b;
-		case '/': return a / b;
-		case '<<': return a << b;
-		case '>>': return a >> b;
-		case '&': return a & b;
-		case '|': return a | b;
-
-		case '&&': return a && b;
-		case '||': return a || b;
-
-		case '<': return a < b;
-		case '>': return a > b;
-		case '>=': return a >= b;
-		case '<=': return a <= b;
-		case '==': return a == b;
-		case '!=': return a != b;
-		default: return 0;
-	}
-}
-
-void createSymbol(HashTable* table, char* key) {
-	Ht_item* item = create_item(key, 0);
-
-	// Computes the index.
-	int index = hash_function(key);
-
-	/* Ht_item* current_item = table->items[index]; */
-/* 
-	if (current_item == NULL)
-	{
-		// Key does not exist.
-		if (table->count == table->size)
-		{
-			// HashTable is full.
-			printf("Insert Error: Hash Table is full\n");
-			free_item(item);
-			return;
-		}
-
-		// Insert directly.
-		table->items[index] = item;
-		table->count++;
-	} */
-
-}
-
-void updateSymbol(char *str, int val) {
-	printf("Updating symbol \n");
-
-	int index = hash_function(str);
-	Ht_item* current_item = hashTable->items[index];
-	if (current_item != NULL) {
-		printf("Symbol not found \n");
-		return;
-	}
-	current_item->value = val;
-}
-
-int symbolVal(char *str) {
-	int index = hash_function(str);
-	Ht_item* current_item = hashTable->items[index];
-
-	if (current_item != NULL)
-		{
-			if (strcmp(current_item->key, str) == 0)
-				return current_item->value;
-    }
-
-	return NULL;
-}
-
-int main (void) {
-   hashTable = create_table(50000);
-   createSymbol(&hashTable, "abr");
-
-   print_table(&hashTable);
-   /* return yyparse(); */
-   return 0;
-}
-
-void yyerror (char const *s) {
-   fprintf (stderr, "%s\n", s);
-}

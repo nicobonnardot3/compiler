@@ -5,8 +5,9 @@
 
 #define CAPACITY 50000 // Size of the HashTable.
 
-unsigned long hash_function(char* str)
-{
+void print_table(HashTable *table);
+
+unsigned long hash_function(char *str) {
     unsigned long i = 0;
 
     for (int j = 0; str[j]; j++)
@@ -15,31 +16,24 @@ unsigned long hash_function(char* str)
     return i % CAPACITY;
 }
 
-Ht_item* create_item(char* key, int value)
-{
-    // Creates a pointer to a new HashTable item.
-    Ht_item* item = (Ht_item*) malloc(sizeof(Ht_item));
-    item->key = (char*) malloc(strlen(key) + 1);
-    item->value = (int) malloc(sizeof(int));
+void create_item(Ht_item *item, char *key, int value) {
+    item->key = (char *) malloc(strlen(key) + 1);
+    item->value = (int) malloc(sizeof(value));
     strcpy(item->key, key);
     item->value = value;
-    return item;
+
+    printf("Created HashTable item with\n\tkey: %s\n\tvalue: %d\n", item->key, item->value);
 }
 
-HashTable* create_table(int size)
-{
-    // Creates a new HashTable.
-    HashTable* table = (HashTable*) malloc(sizeof(HashTable));
+void create_table(HashTable *table, int size) {
     table->size = size;
     table->count = 0;
-    table->items = (Ht_item**) calloc(table->size, sizeof(Ht_item*));
+    table->items = (Ht_item **) calloc(size, sizeof(Ht_item *));
 
     for (int i = 0; i < table->size; i++)
         table->items[i] = NULL;
 
-    printf("Created HashTable with size %d and count %d", table->size, table->count);     
-
-    return table;
+    printf("Created HashTable with size %d and count %d\n", table->size, table->count);
 }
 
 void free_item(Ht_item* item)
@@ -75,24 +69,10 @@ void print_table(HashTable* table)
     {
         if (table->items[i])
         {
-            printf("Index:%d, Key:%s, Value:%s\n", i, table->items[i] -> key, table->items[i]->value);
+            printf("Index:%d, Key:%s, Value:%d\n", i, table->items[i]->key, table->items[i]->value);
             continue;
         }
         
-    }
-
-    printf("-------------------\n\n");
-}
-
-void print_item(Ht_item* item)
-{
-    printf("\nHash Table Item\n-------------------\n");
-
-    if (item != NULL) {
-        printf("Key:%s, Value:%d\n", item->key, item->value);
-    }
-    else {
-        printf("Item is NULL\n");
     }
 
     printf("-------------------\n\n");

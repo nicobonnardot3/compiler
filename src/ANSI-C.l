@@ -60,13 +60,14 @@ int column = 1;
 
 [(){};=,]               { column += 1; return yytext[0]; } // PARENTHESE
 
+"//".*                  {yylineno++; column = 0;}
 
 .                       { char *str; sprintf(str, "Caractere non reconnu : %s\n\tligne : %d\n\t column %d\n", yytext, yylineno, column); yyerror(str); column++; }
 %%
 
 int yywrap (void) {return 1;}
 
-int str_length(char str[]) {
+int str_length(char* str) {
     int count; 
     for (count = 0; str[count] != '\0'; ++count);
     return count; 
