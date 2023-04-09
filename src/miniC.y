@@ -3,25 +3,26 @@
 #include <stdlib.h>
 #include "hashTable/HashTable.h"
 
-extern HashTable *hashTable;
-extern int parseOperation(int a, int b, char op);
+extern HashTable* hashTable;
+extern int parseOperation(int a, int b, char* op);
 extern void createSymbol(HashTable* table, char* key);
-extern void updateSymbol(char *str, int val);
+extern void updateSymbol(HashTable *table, char *str, int val);
 extern int symbolVal(char *str);
 extern void yyerror (char const *s);
 extern int yylex();
+extern char* removeUnwantedChar(char* str);
+extern void extractVarName(char* dest, char* str);
 
 %}
 
 %union {
 	int num;
-	char id;
-	char bin_op;
-
+	char* id;
+	char* bin_op;
 }
 
-%token <id> IDENTIFICATEUR 
-%token <num> CONSTANTE 
+%token <id> IDENTIFICATEUR
+%token <num> CONSTANTE
 %token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
 %token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT
 %token GEQ LEQ EQ NEQ NOT EXTERN
@@ -60,7 +61,7 @@ liste_declarateurs  :
 		|	declarateur
 ;
 declarateur :	
-		IDENTIFICATEUR					{ printf("variable: int %s;\n", $1 ); createSymbol(hashTable, $1);}
+		IDENTIFICATEUR					{ char* str = removeUnwantedChar($1); createSymbol(hashTable, str);}
 	|	declarateur '[' CONSTANTE ']'
 ;
 fonction :	
@@ -107,13 +108,13 @@ saut :
 	 |	RETURN expression ';'
 ;
 affectation :
-	variable '=' expression 					{ printf("variable: int %s;\n", $1 ); updateSymbol($1, $3);};
+	variable '=' expression 							{ char str[255] = ""; extractVarName(str, $1); updateSymbol(hashTable, str, $3);};
 bloc :
 	'{' liste_declarations liste_instructions '}';
 appel :
 	IDENTIFICATEUR '(' liste_expressions ')' ';';
 variable :	
-		IDENTIFICATEUR								{ $$ = $1;}
+		IDENTIFICATEUR									{  $$ = $1;}
 	|	variable '[' expression ']' 				
 ;
 expression  :
@@ -129,31 +130,31 @@ liste_expressions :
 	| 	expression
 ;
 condition :	
-		NOT '(' condition ')' 					{ $$ = !$3;}
-	|	condition binary_rel condition %prec REL { $$ = parseOperation($1, $3, $2);}
-	|	'(' condition ')' 						{ $$ = $2;}
-	|	expression binary_comp expression 		{ $$ = parseOperation($1, $3, $2);}
+		NOT '(' condition ')' 							{ $$ = !$3;}
+	|	condition binary_rel condition %prec REL 		{ $$ = parseOperation($1, $3, $2);}
+	|	'(' condition ')' 								{ $$ = $2;}
+	|	expression binary_comp expression 				{ $$ = parseOperation($1, $3, $2);}
 ;
 binary_op :	
-		PLUS 	{ $$ = '+'; }
-	|   MOINS	{ $$ = '-'; }
-	|	MUL 	{ $$ = '*'; }
-	|	DIV 	{ $$ = '/'; }
-	|   LSHIFT	{ $$ = '<<'; }
-	|   RSHIFT	{ $$ = '>>'; }
-	|	BAND	{ $$ = '&'; }
-	|	BOR		{ $$ = '|'; }
+		PLUS 	{ $$ = "+"; }
+	|   MOINS	{ $$ = "-"; }
+	|	MUL 	{ $$ = "*"; }
+	|	DIV 	{ $$ = "/"; }
+	|   LSHIFT	{ $$ = "<<"; }
+	|   RSHIFT	{ $$ = ">>"; }
+	|	BAND	{ $$ = "&"; }
+	|	BOR		{ $$ = "|"; }
 ;
 binary_rel :
-		LAND 	{ $$ = '&&'; }
-	|	LOR 	{ $$ = '||'; }
+		LAND 	{ $$ = "&&"; }
+	|	LOR 	{ $$ = "||"; }
 ;
 binary_comp :
-		LT		{ $$ = '<'; }
-	|	GT		{ $$ = '>'; }
-	|	GEQ		{ $$ = '>='; }
-	|	LEQ		{ $$ = '<='; }
-	|	EQ		{ $$ = '=='; }
-	|	NEQ		{ $$ = '!='; }
+		LT		{ $$ = "<"; }
+	|	GT		{ $$ = ">"; }
+	|	GEQ		{ $$ = ">="; }
+	|	LEQ		{ $$ = "<="; }
+	|	EQ		{ $$ = "=="; }
+	|	NEQ		{ $$ = "!="; }
 ;
 %%

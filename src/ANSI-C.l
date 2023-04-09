@@ -6,7 +6,7 @@ IS                      (u|U|l|L)*
 %{
 #include <stdio.h>
 #include "y.tab.h"
-void yyerror (char *s);
+void yyerror (char const *s);
 int str_length(char str[]);
 int yylex();
 int column = 1;
