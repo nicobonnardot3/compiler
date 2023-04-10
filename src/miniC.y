@@ -3,17 +3,24 @@
 #include <stdlib.h>
 #include "hashTable/HashTable.h"
 
+int list_index = 0;
+
 extern HashTable* varHashTable;
 extern int parseOperation(int a, int b, char* op);
 extern void createVar(HashTable *table, char* key, char *type);
+extern void createList(HashTable *table, char *key, int size);
 extern void updateVar(HashTable *table, char* str, int val);
+extern void updateListVar(HashTable *table, char *listKey, int index, int value);
 extern int symbolVal(HashTable *table, char* str);
 extern void yyerror (char const *s);
 extern int yylex();
 extern char* removeUnwantedChar(char* str);
 extern void extractVarName(char* dest, char* str);
+extern void extractTableVar(char* str, int* index, char* input);
+
 
 %}
+
 
 %union {
 	int num;
@@ -21,11 +28,12 @@ extern void extractVarName(char* dest, char* str);
 	char* bin_op;
 }
 
-%token <id> IDENTIFICATEUR
-%token <num> CONSTANTE
-%token VOID INT FOR WHILE IF ELSE SWITCH CASE DEFAULT
-%token BREAK RETURN PLUS MOINS MUL DIV LSHIFT RSHIFT BAND BOR LAND LOR LT GT
-%token GEQ LEQ EQ NEQ NOT EXTERN
+
+%token <id> IDENTIFICATEUR "identifier"
+%token <num> CONSTANTE "const"
+%token VOID "void" INT "int" FOR "for" WHILE "while" IF "if" ELSE "else" SWITCH "switch" CASE "case" DEFAULT "default"
+%token BREAK "break" RETURN "return" PLUS "+" MOINS MUL "*" DIV "/" LSHIFT "<<" RSHIFT ">>" BAND "&&" BOR "||" LAND "&" LOR "|" LT "<" GT ">"
+%token GEQ ">=" LEQ "<=" EQ "=" NEQ "-" NOT "!" EXTERN "extern"
 
 %type <num> expression condition
 %type <id> variable declarateur_list
@@ -42,6 +50,8 @@ extern void extractVarName(char* dest, char* str);
 %nonassoc ELSE
 
 %start programme
+
+%define parse.error verbose
 
 
 %%
@@ -70,7 +80,6 @@ declarateur :
 								}
 	|	declarateur_list '[' CONSTANTE ']'		{
 									int size = $3;
-									char* type = "int list";
 									createList(varHashTable, $1, size);
 								}
 ;
@@ -122,7 +131,12 @@ affectation :		// sous-arbres : := -> nom_var, := -> EXPR
 	variable '=' expression {
 					char str[255] = "";
 					extractVarName(str, $1);
-					updateVar(varHashTable, str, $3);
+
+					if (list_index == -1)
+						updateVar(varHashTable, str, $3);
+					else {
+						updateListVar(varHashTable, str, list_index, $3);
+					}
 				}
 ;
 bloc :
@@ -131,9 +145,16 @@ bloc :
 appel :
 	IDENTIFICATEUR '(' liste_expressions ')' ';'
 ;
-variable :	
-		IDENTIFICATEUR					{ $$ = $1; }
-	|	variable '[' expression ']' 				
+variable :
+		IDENTIFICATEUR					{ list_index = -1; $$ = $1; }
+	|	variable '[' expression ']'			{
+									printf("test");
+									char* str[255];
+									list_index = 0;
+									extractTableVar(str, &list_index, $1);
+									printf("str: %s\nindex: %d", str, list_index);
+									$$ = str;
+								}
 ;
 expression  :	// var et const = node, binop = sous arbre
 		'(' expression ')'				{ $$ = $2; }

@@ -33,15 +33,30 @@ extern int symbolVal(HashTable *table, char *str);
 
 extern void createList(HashTable *table, char *key, int size);
 
+extern void updateListVar(HashTable *table, char *listKey, int index, int value);
+
+extern unsigned long getIndex(HashTable *table, char *key);
+
 
 int main(void) {
-    hashTable = (HashTable *) malloc(sizeof(HashTable));
-    create_table(hashTable, 50000);
-    //    createSymbol(hashTable, "a");
-    //    updateSymbol(hashTable, "a", 10);
+    varHashTable = (HashTable *) malloc(sizeof(HashTable));
+    create_table(varHashTable, 50000);
 
-    //    createList(varHashTable, "testList", 10);
+    functionHashTable = (HashTable *) malloc(sizeof(HashTable));
+    create_table(functionHashTable, 50000);
+
+
+    //    createVar(varHashTable, "a", "int");
+    //    updateVar(varHashTable, "a", 10);
     //
+    //    createList(varHashTable, "testList", 10);
+    //    updateListVar(varHashTable, "testList", 1, 5);
+    //
+    //    unsigned long index = getIndex(varHashTable, "testList");
+    //
+    //    Ht_item* item = varHashTable->items[index];
+    //    print_item(item);
+
     processParsing();
 }
 
@@ -49,23 +64,28 @@ int processParsing() {
     return yyparse();
 }
 
-
-
-void yyerror(char const *s) {
-    fprintf(stderr, "%s\n", s);
-}
-
 void extractVarName(char *dest, char *str) {
     int i = 0;
     while (str[i] && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']') {
-        //    printf("%c: %b\n", str[i], str[i] && str[i] != ' ' && str[i] != ';');
         i++;
     }
     strncat(dest, str, i);
 }
 
+void extractTableVar(char *str, int *index, char *input) {
+    int i = 0;
+    while (str[i] != '[') i++;
+    int j = i + 1;
+    while (str[i] != ']') j++;
+    char *indexString = "";
+    strncpy(indexString, input + i + 1, j - i + 1);
+    strncpy(str, input, i);
+    *index = atoi(indexString);
+    printf("str: %s\nindex: %d", str, *index);
+}
+
 char *removeUnwantedChar(char *str) {
-    if (str[strlen(str) - 1] == ';') {
+    if (str[strlen(str) - 1] == ';' || str[strlen(str) - 1] == ',') {
         str[strlen(str) - 1] = '\0';
     }
     return str;
@@ -89,4 +109,10 @@ int parseOperation(int a, int b, char *op) {
     if (strcmp("==", op) == 0) return a == b;
     if (strcmp("!=", op) == 0) return a != b;
     return 0;
+}
+
+void yyerror(char const *s) {
+    extern int yylineno;
+    extern int column;
+    fprintf(stderr, "%s: \n\tLine: %d\n\tColumn: %d \n", s, yylineno, column);
 }

@@ -1,8 +1,9 @@
 typedef struct Variables {
     char *type;
-    int value;
+    void *value;
     int size;
 } Variable;
+
 
 typedef struct Ht_items {
     char *key;

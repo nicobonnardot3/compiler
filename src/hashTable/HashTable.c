@@ -6,9 +6,12 @@
 #define CAPACITY 50000// Size of the HashTable.
 
 void createVar(HashTable *table, char *key, char *type);
+void createList(HashTable *table, char *key, int size);
+unsigned long getIndex(HashTable *table, char *key);
 void updateVar(HashTable *table, char *str, int val);
 int symbolVal(HashTable *table, char *str);
 void print_table(HashTable *table);
+void print_item(Ht_item *item);
 
 unsigned long hash_function(char *str) {
     unsigned long i = 0;
@@ -25,7 +28,7 @@ void create_item(Ht_item *item, char *key, char *type, int size) {
     strcpy(item->key, key);
     Variable *var = item->var;
     var->type = type;
-    if (strcmp(type, "int list")) {
+    if (strcmp(type, "int list") == 0) {
         var->size = sizeof(int) * size;
         var->value = (int *) malloc(size * sizeof(int));
     } else {
@@ -80,7 +83,13 @@ void print_table(HashTable *table) {
         if (item == NULL) continue;
 
         Variable *var = item->var;
-        printf("Index: %d, Key: %s, type: %s, size: %llu\n", i, item->key, var->type, (var->size / sizeof(int)));
+        int *value = var->value;
+        if (strcmp(var->type, "int") == 0) {
+            printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, *(value));
+        } else {
+            print_item(item);
+            printf("Index: %d, Key: %s, type: %s, size: %llu\n", i, item->key, var->type, (var->size / sizeof(int)));
+        }
     }
 
     printf("--------------------------------------------------\n");
@@ -98,31 +107,37 @@ void print_item(Ht_item *item) {
         return;
     }
 
-    printf("----------------- item ----------------- \n   key: %s\n   value: %d\n----------------------------------------\n", item->key, var->value);
+    if (strcmp(var->type, "int") == 0) {
+        int *value = var->value;
+        printf("----------------- item ----------------- \n   key: %s\n   value: %d\n----------------------------------------\n", item->key, *(value));
+        return;
+    }
+    int size = var->size / sizeof(int);
+    int *list = var->value;
+    printf("----------------- table item -----------------\n");
+    printf("Key: %s, size: %d\n", item->key, size);
+    for (int i = 0; i < size; i++) {
+        printf("Index: %d, value: %d\n", i, *(list + i));
+    }
+    printf("----------------------------------------\n");
 }
 
 void createVar(HashTable *table, char *key, char *type) {
+    if (table->count == table->size) {
+        printf("Insert Error: Hash Table is full\n");
+        return;
+    }
+
     Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
     create_item(item, key, "int", 1);
 
-    // Computes the index.
     unsigned long index = hash_function(key);
 
-    Ht_item *current_item = table->items[index];
+    while (table->items[index] != NULL)
+        index++;
 
-    if (current_item == NULL) {
-        // Key does not exist.
-        if (table->count == table->size) {
-            // HashTable is full.
-            printf("Insert Error: Hash Table is full\n");
-            free_item(item);
-            return;
-        }
-
-        // Insert directly.
-        table->items[index] = item;
-        table->count++;
-    }
+    table->items[index] = item;
+    table->count++;
 
     print_table(table);
 }
@@ -136,6 +151,10 @@ void createList(HashTable *table, char *key, int size) {
     // Computes the index.
     unsigned long index = hash_function(key);
 
+    while (table->items[index] != NULL)
+        index++;
+
+
     Ht_item *current_item = table->items[index];
     if (current_item == NULL) {
         table->items[index] = item;
@@ -148,37 +167,75 @@ void createList(HashTable *table, char *key, int size) {
 void updateVar(HashTable *table, char *str, int value) {
     printf("Updating symbol: \"%s\" with value: %d \n", str, value);
 
-    unsigned long index = hash_function(str);
-    Ht_item *current_item = table->items[index];
-    if (current_item == NULL) {
+    unsigned long index = getIndex(table, str);
+    Ht_item *currentItem = table->items[index];
+
+    if (currentItem == NULL) {
         printf("Symbol not found \n");
         return;
     }
 
-    Variable *var = current_item->var;
+    Variable *var = currentItem->var;
     if (var == NULL) {
         printf("var \"%s\" is NULL", str);
         return;
     }
 
-    var->value = value;
+    int *val = var->value;
+    *(val) = value;
     print_table(table);
 }
 
+void updateListVar(HashTable *table, char *listKey, int index, int value) {
+    printf("Updating symbol: \"%s[%d]\" with value: %d \n", listKey, index, value);
+
+    unsigned long tableIndex = getIndex(table, listKey);
+    Ht_item *currentItem = table->items[tableIndex];
+
+    if (currentItem == NULL) {
+        printf("item is NULL");
+        return;
+    }
+
+    Variable *var = currentItem->var;
+
+    if (var == NULL) {
+        printf("variable for %s is NULL", currentItem->key);
+        return;
+    }
+
+    int size = var->size / sizeof(int);
+    if (var->value == 0) {
+        int newList[size];
+        var->value = *newList;
+    }
+
+    int *list = var->value;
+    int *item = list + index;
+    *item = value;
+}
+
 int symbolVal(HashTable *table, char *str) {
-    unsigned long index = hash_function(str);
-    Ht_item *current_item = table->items[index];
+    unsigned long index = getIndex(table, str);
+    Ht_item *currentItem = table->items[index];
 
-    print_item(current_item);
+    print_item(currentItem);
 
-    if (current_item == NULL) {
+    if (currentItem == NULL)
         return NULL;
-    }
-    if (strcmp(current_item->key, str) == 0) {
-        Variable *var = current_item->var;
-        if (var == NULL)
-            return NULL;
 
-        return current_item->var->value;
-    }
+    Variable *var = currentItem->var;
+    if (var == NULL)
+        return NULL;
+
+    int *value = currentItem->var->value;
+    return *value;
+}
+
+unsigned long getIndex(HashTable *table, char *key) {
+    unsigned long index = hash_function(key);
+    while (table->items[index] != NULL && strcmp(table->items[index]->key, key) != 0)
+        index++;
+
+    return index;
 }
