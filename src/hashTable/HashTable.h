@@ -1,6 +1,12 @@
+typedef struct Variables {
+    char *type;
+    int value;
+    int size;
+} Variable;
+
 typedef struct Ht_items {
     char *key;
-    int value;
+    Variable *var;
 } Ht_item;
 
 // Defines the HashTable.

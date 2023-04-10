@@ -9,17 +9,13 @@ int processParsing();
 
 int parseOperation(int a, int b, char *op);
 
-void createSymbol(HashTable *table, char *key);
-
-void updateSymbol(HashTable *table, char *str, int val);
-
-int symbolVal(char *str);
-
 int yyparse();
 
 void yyerror(char const *s);
 
 extern void print_table(HashTable *table);
+
+extern void print_item(Ht_item *item);
 
 extern unsigned long hash_function(char *str);
 
@@ -29,6 +25,14 @@ extern void create_item(Ht_item *item, char *key);
 
 extern void free_item(Ht_item *item);
 
+extern void createVar(HashTable *table, char *key, char *type);
+
+extern void updateVar(HashTable *table, char *str, int val);
+
+extern int symbolVal(HashTable *table, char *str);
+
+extern void createList(HashTable *table, char *key, int size);
+
 
 int main(void) {
     hashTable = (HashTable *) malloc(sizeof(HashTable));
@@ -36,6 +40,8 @@ int main(void) {
     //    createSymbol(hashTable, "a");
     //    updateSymbol(hashTable, "a", 10);
 
+    //    createList(varHashTable, "testList", 10);
+    //
     processParsing();
 }
 
@@ -43,57 +49,7 @@ int processParsing() {
     return yyparse();
 }
 
-void createSymbol(HashTable *table, char *key) {
-    Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
-    create_item(item, key);
 
-    // Computes the index.
-    unsigned long index = hash_function(key);
-
-    Ht_item *current_item = table->items[index];
-
-    if (current_item == NULL) {
-        // Key does not exist.
-        if (table->count == table->size) {
-            // HashTable is full.
-            printf("Insert Error: Hash Table is full\n");
-            free_item(item);
-            return;
-        }
-
-        // Insert directly.
-        table->items[index] = item;
-        table->count++;
-    }
-
-    print_table(hashTable);
-}
-
-void updateSymbol(HashTable *table, char *str, int value) {
-    printf("Updating symbol: \"%s\" with value: %d \n", str, value);
-
-    unsigned long index = hash_function(str);
-    Ht_item *current_item = table->items[index];
-    if (current_item == NULL) {
-        printf("Symbol not found \n");
-        return;
-    }
-
-    current_item->value = value;
-    print_table(hashTable);
-}
-
-int symbolVal(char *str) {
-    unsigned long index = hash_function(str);
-    Ht_item *current_item = hashTable->items[index];
-
-    if (current_item != NULL) {
-        if (strcmp(current_item->key, str) == 0)
-            return current_item->value;
-    }
-
-    return 0;
-}
 
 void yyerror(char const *s) {
     fprintf(stderr, "%s\n", s);
@@ -101,7 +57,8 @@ void yyerror(char const *s) {
 
 void extractVarName(char *dest, char *str) {
     int i = 0;
-    while (str[i] && str[i] != ' ') {
+    while (str[i] && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']') {
+        //    printf("%c: %b\n", str[i], str[i] && str[i] != ' ' && str[i] != ';');
         i++;
     }
     strncat(dest, str, i);
@@ -115,21 +72,21 @@ char *removeUnwantedChar(char *str) {
 }
 
 int parseOperation(int a, int b, char *op) {
-    if (strcmp("+", op) != 0) return a + b;
-    if (strcmp("-", op) != 0) return a - b;
-    if (strcmp("*", op) != 0) return a * b;
-    if (strcmp("/", op) != 0) return a / b;
-    if (strcmp("<<", op) != 0) return a << b;
-    if (strcmp(">>", op) != 0) return a >> b;
-    if (strcmp("&", op) != 0) return a & b;
-    if (strcmp("|", op) != 0) return a | b;
-    if (strcmp("&&", op) != 0) return a && b;
-    if (strcmp("||", op) != 0) return a || b;
-    if (strcmp("<", op) != 0) return a < b;
-    if (strcmp(">", op) != 0) return a > b;
-    if (strcmp(">=", op) != 0) return a >= b;
-    if (strcmp("<=", op) != 0) return a <= b;
-    if (strcmp("==", op) != 0) return a == b;
-    if (strcmp("!=", op) != 0) return a != b;
+    if (strcmp("+", op) == 0) return a + b;
+    if (strcmp("-", op) == 0) return a - b;
+    if (strcmp("*", op) == 0) return a * b;
+    if (strcmp("/", op) == 0) return a / b;
+    if (strcmp("<<", op) == 0) return a << b;
+    if (strcmp(">>", op) == 0) return a >> b;
+    if (strcmp("&", op) == 0) return a & b;
+    if (strcmp("|", op) == 0) return a | b;
+    if (strcmp("&&", op) == 0) return a && b;
+    if (strcmp("||", op) == 0) return a || b;
+    if (strcmp("<", op) == 0) return a < b;
+    if (strcmp(">", op) == 0) return a > b;
+    if (strcmp(">=", op) == 0) return a >= b;
+    if (strcmp("<=", op) == 0) return a <= b;
+    if (strcmp("==", op) == 0) return a == b;
+    if (strcmp("!=", op) == 0) return a != b;
     return 0;
 }

@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include "hashTable/HashTable.h"
 
-extern HashTable* hashTable;
+extern HashTable* varHashTable;
 extern int parseOperation(int a, int b, char* op);
-extern void createSymbol(HashTable* table, char* key);
-extern void updateSymbol(HashTable *table, char *str, int val);
-extern int symbolVal(char *str);
+extern void createVar(HashTable *table, char* key, char *type);
+extern void updateVar(HashTable *table, char* str, int val);
+extern int symbolVal(HashTable *table, char* str);
 extern void yyerror (char const *s);
 extern int yylex();
 extern char* removeUnwantedChar(char* str);
@@ -28,7 +28,7 @@ extern void extractVarName(char* dest, char* str);
 %token GEQ LEQ EQ NEQ NOT EXTERN
 
 %type <num> expression condition
-%type <id> variable
+%type <id> variable declarateur_list
 %type <bin_op> binary_op binary_rel binary_comp
 
 %left PLUS MOINS
@@ -46,26 +46,36 @@ extern void extractVarName(char* dest, char* str);
 
 %%
 programme :
-	liste_declarations liste_fonctions;
-liste_declarations  : 
+	liste_declarations liste_fonctions
+;
+liste_declarations :
 		  	liste_declarations declaration 
-		| 	;
+		|
+;
 liste_fonctions :
 			liste_fonctions fonction
 		|   fonction
 ;
 declaration :
-	type liste_declarateurs ';';
+	type liste_declarateurs ';'
+;
 liste_declarateurs  :	
 			liste_declarateurs ',' declarateur
 		|	declarateur
 ;
 declarateur :	
-		IDENTIFICATEUR					{ char* str = removeUnwantedChar($1); createSymbol(hashTable, str);}
-	|	declarateur '[' CONSTANTE ']'
+		IDENTIFICATEUR					{
+									char* str = removeUnwantedChar($1);
+									createVar(varHashTable, str, "int");
+								}
+	|	declarateur_list '[' CONSTANTE ']'		{
+									int size = $3;
+									char* type = "int list";
+									createList(varHashTable, $1, size);
+								}
 ;
 fonction :	
-		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}'
+		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' // sous Arbre abstrait, chaque instruction -> fils
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';'
 ;
 type :	
@@ -78,7 +88,8 @@ liste_parms :
 	|	
 ;
 parm :
-	INT IDENTIFICATEUR;
+	INT IDENTIFICATEUR
+;
 liste_instructions  :	
 		liste_instructions instruction
 	|	instruction
@@ -107,43 +118,54 @@ saut :
 	 |	RETURN ';'
 	 |	RETURN expression ';'
 ;
-affectation :
-	variable '=' expression 							{ char str[255] = ""; extractVarName(str, $1); updateSymbol(hashTable, str, $3);};
+affectation :		// sous-arbres : := -> nom_var, := -> EXPR
+	variable '=' expression {
+					char str[255] = "";
+					extractVarName(str, $1);
+					updateVar(varHashTable, str, $3);
+				}
+;
 bloc :
-	'{' liste_declarations liste_instructions '}';
+	'{' liste_declarations liste_instructions '}'	// node BLOC
+;
 appel :
-	IDENTIFICATEUR '(' liste_expressions ')' ';';
+	IDENTIFICATEUR '(' liste_expressions ')' ';'
+;
 variable :	
-		IDENTIFICATEUR									{  $$ = $1;}
+		IDENTIFICATEUR					{ $$ = $1; }
 	|	variable '[' expression ']' 				
 ;
-expression  :
-		'(' expression ')'							{ $$ = $2; printf("%d \n", $2);}
-	|	expression binary_op expression %prec OP	{ $$ = parseOperation($1, $3, $2); printf("%d %c %d = %d \n", $1, $2, $3, $$);}
-	|	MOINS expression							{ $$ = -$2; printf("%d \n", $2);}
-	|	CONSTANTE									{ $$ = $1; printf("%d \n", $1);}
-	|	variable									{ $$ = symbolVal($1); printf("%d \n", $$);}
-	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0; printf("%d \n", $$);}
+expression  :	// var et const = node, binop = sous arbre
+		'(' expression ')'				{ $$ = $2; }
+	|	expression binary_op expression %prec OP	{ $$ = parseOperation($1, $3, $2); }
+	|	MOINS expression				{ $$ = -$2; }
+	|	CONSTANTE					{ $$ = $1; }
+	|	variable					{
+									char str[255] = "";
+									extractVarName(str, $1);
+									$$ = symbolVal(varHashTable, str);
+								}
+	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0; }
 ;
-liste_expressions :	
+liste_expressions :
 		liste_expressions ',' expression
 	| 	expression
 ;
 condition :	
-		NOT '(' condition ')' 							{ $$ = !$3;}
-	|	condition binary_rel condition %prec REL 		{ $$ = parseOperation($1, $3, $2);}
-	|	'(' condition ')' 								{ $$ = $2;}
-	|	expression binary_comp expression 				{ $$ = parseOperation($1, $3, $2);}
+		NOT '(' condition ')' 				{ $$ = !$3; }
+	|	condition binary_rel condition %prec REL 	{ $$ = parseOperation($1, $3, $2); }
+	|	'(' condition ')' 				{ $$ = $2; }
+	|	expression binary_comp expression 		{ $$ = parseOperation($1, $3, $2); }
 ;
 binary_op :	
 		PLUS 	{ $$ = "+"; }
-	|   MOINS	{ $$ = "-"; }
+	|   	MOINS	{ $$ = "-"; }
 	|	MUL 	{ $$ = "*"; }
 	|	DIV 	{ $$ = "/"; }
-	|   LSHIFT	{ $$ = "<<"; }
-	|   RSHIFT	{ $$ = ">>"; }
+	|   	LSHIFT	{ $$ = "<<"; }
+	|   	RSHIFT	{ $$ = ">>"; }
 	|	BAND	{ $$ = "&"; }
-	|	BOR		{ $$ = "|"; }
+	|	BOR	{ $$ = "|"; }
 ;
 binary_rel :
 		LAND 	{ $$ = "&&"; }

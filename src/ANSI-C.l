@@ -58,7 +58,7 @@ int column = 1;
 
 "\n"                    {  column = 1; yylineno++; } // RETOUR A LA LIGNE
 
-[(){};=,]               { column += 1; return yytext[0]; } // PARENTHESE
+[\[(){};=,\]]               { column += 1; return yytext[0]; } // PARENTHESE
 
 "//".*                  {yylineno++; column = 0;}
 
