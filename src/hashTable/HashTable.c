@@ -28,7 +28,7 @@ void create_item(Ht_item *item, char *key, char *type, int size) {
     strcpy(item->key, key);
     Variable *var = item->var;
     var->type = type;
-    if (strcmp(type, "int list") == 0) {
+    if (strcmp(type, "int List") == 0) {
         var->size = sizeof(int) * size;
         var->value = (int *) malloc(size * sizeof(int));
     } else {
@@ -61,7 +61,6 @@ void free_item(Ht_item *item) {
 }
 
 void free_table(HashTable *table) {
-    // Frees the table.
     for (int i = 0; i < table->size; i++) {
         Ht_item *item = table->items[i];
 
@@ -83,13 +82,10 @@ void print_table(HashTable *table) {
         if (item == NULL) continue;
 
         Variable *var = item->var;
-        int *value = var->value;
-        if (strcmp(var->type, "int") == 0) {
-            printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, *(value));
-        } else {
+        int value = var->value;
+        if (strcmp(var->type, "int") == 0) printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, value);
+        else
             print_item(item);
-            printf("Index: %d, Key: %s, type: %s, size: %llu\n", i, item->key, var->type, (var->size / sizeof(int)));
-        }
     }
 
     printf("--------------------------------------------------\n");
@@ -116,9 +112,9 @@ void print_item(Ht_item *item) {
     int *list = var->value;
     printf("----------------- table item -----------------\n");
     printf("Key: %s, size: %d\n", item->key, size);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++)
         printf("Index: %d, value: %d\n", i, *(list + i));
-    }
+
     printf("----------------------------------------\n");
 }
 
@@ -129,7 +125,7 @@ void createVar(HashTable *table, char *key, char *type) {
     }
 
     Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
-    create_item(item, key, "int", 1);
+    create_item(item, key, type, 1);
 
     unsigned long index = hash_function(key);
 
@@ -145,6 +141,7 @@ void createVar(HashTable *table, char *key, char *type) {
 void createList(HashTable *table, char *key, int size) {
     Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
     create_item(item, key, "int List", size);
+
 
     if (item == NULL) return;
 
@@ -181,13 +178,12 @@ void updateVar(HashTable *table, char *str, int value) {
         return;
     }
 
-    int *val = var->value;
-    *(val) = value;
-    print_table(table);
+    var->value = value;
+    //    print_table(table);
 }
 
 void updateListVar(HashTable *table, char *listKey, int index, int value) {
-    printf("Updating symbol: \"%s[%d]\" with value: %d \n", listKey, index, value);
+    printf("Updating %s[%d] with value: %d\n", listKey, index, value);
 
     unsigned long tableIndex = getIndex(table, listKey);
     Ht_item *currentItem = table->items[tableIndex];
@@ -213,6 +209,8 @@ void updateListVar(HashTable *table, char *listKey, int index, int value) {
     int *list = var->value;
     int *item = list + index;
     *item = value;
+
+    print_table(table);
 }
 
 int symbolVal(HashTable *table, char *str) {
@@ -228,8 +226,23 @@ int symbolVal(HashTable *table, char *str) {
     if (var == NULL)
         return NULL;
 
-    int *value = currentItem->var->value;
+    int *value = var->value;
     return *value;
+}
+
+int tableValue(HashTable *table, char *str, int index) {
+    unsigned long hashTableIndex = getIndex(table, str);
+    Ht_item *currentItem = table->items[hashTableIndex];
+
+    if (currentItem == NULL)
+        return NULL;
+
+    Variable *var = currentItem->var;
+    if (var == NULL)
+        return NULL;
+
+    int *x = var->value + index;
+    return *x;
 }
 
 unsigned long getIndex(HashTable *table, char *key) {

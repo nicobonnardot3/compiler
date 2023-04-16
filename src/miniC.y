@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "hashTable/HashTable.h"
 
-int list_index = 0;
+extern int *list_index;
 
 extern HashTable* varHashTable;
 extern int parseOperation(int a, int b, char* op);
@@ -129,13 +129,12 @@ saut :
 ;
 affectation :		// sous-arbres : := -> nom_var, := -> EXPR
 	variable '=' expression {
-					char str[255] = "";
-					extractVarName(str, $1);
-
-					if (list_index == -1)
+					if (list_index == NULL || list_index == -1) {
+						char str[255] = "";
+						extractVarName(str, $1);
 						updateVar(varHashTable, str, $3);
-					else {
-						updateListVar(varHashTable, str, list_index, $3);
+					} else {
+						updateListVar(varHashTable, $1, *list_index, $3);
 					}
 				}
 ;
@@ -146,13 +145,11 @@ appel :
 	IDENTIFICATEUR '(' liste_expressions ')' ';'
 ;
 variable :
-		IDENTIFICATEUR					{ list_index = -1; $$ = $1; }
+		IDENTIFICATEUR					{  *list_index = -1; $$ = $1; }
 	|	variable '[' expression ']'			{
-									printf("test");
 									char* str[255];
-									list_index = 0;
-									extractTableVar(str, &list_index, $1);
-									printf("str: %s\nindex: %d", str, list_index);
+									extractTableVar(str, list_index, $1);
+									printf("str: %s; index: %d\n", str, *list_index);
 									$$ = str;
 								}
 ;
@@ -162,9 +159,14 @@ expression  :	// var et const = node, binop = sous arbre
 	|	MOINS expression				{ $$ = -$2; }
 	|	CONSTANTE					{ $$ = $1; }
 	|	variable					{
-									char str[255] = "";
-									extractVarName(str, $1);
-									$$ = symbolVal(varHashTable, str);
+									if (*(list_index) == -1) {
+										char str[255] = "";
+										extractVarName(str, $1);
+										$$ = symbolVal(varHashTable, str);
+									} else {
+										printf("$1 = %s\n", $1);
+										$$ = tableValue(varHashTable, $1, *list_index);
+									}
 								}
 	|	IDENTIFICATEUR '(' liste_expressions ')'	{ $$ = 0; }
 ;

@@ -39,6 +39,8 @@ extern unsigned long getIndex(HashTable *table, char *key);
 
 
 int main(void) {
+    list_index = malloc(sizeof(int));
+
     varHashTable = (HashTable *) malloc(sizeof(HashTable));
     create_table(varHashTable, 50000);
 
@@ -66,7 +68,7 @@ int processParsing() {
 
 void extractVarName(char *dest, char *str) {
     int i = 0;
-    while (str[i] && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']') {
+    while (str[i] && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0') {
         i++;
     }
     strncat(dest, str, i);
@@ -74,14 +76,15 @@ void extractVarName(char *dest, char *str) {
 
 void extractTableVar(char *str, int *index, char *input) {
     int i = 0;
-    while (str[i] != '[') i++;
-    int j = i + 1;
-    while (str[i] != ']') j++;
-    char *indexString = "";
+    while (input[i] != '[') i++;
+    int j = i;
+    while (input[j] != ']') j++;
+
+
+    char *indexString = malloc(sizeof j - i + 1);
     strncpy(indexString, input + i + 1, j - i + 1);
     strncpy(str, input, i);
     *index = atoi(indexString);
-    printf("str: %s\nindex: %d", str, *index);
 }
 
 char *removeUnwantedChar(char *str) {
