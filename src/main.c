@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-HashTable *hashTable;
+HashTable *varHashTable;
+HashTable *functionHashTable;
+int *list_index;
 
 int processParsing();
 

@@ -83,6 +83,13 @@ declarateur :
 									createList(varHashTable, $1, size);
 								}
 ;
+declarateur_list :
+		IDENTIFICATEUR 					{
+									char str[255] = "";
+                                                                  	extractVarName(str, $1);
+                                                                  	$$ = str;
+								}
+;
 fonction :	
 		type IDENTIFICATEUR '(' liste_parms ')' '{' liste_declarations liste_instructions '}' // sous Arbre abstrait, chaque instruction -> fils
 	|	EXTERN type IDENTIFICATEUR '(' liste_parms ')' ';'
