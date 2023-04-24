@@ -1,8 +1,14 @@
-//
-// Created by nico on 24/04/2023.
-//
+typedef struct CallTree {
+    char* name;
+    char* type; // int, void
+    int value; // int if var or const, NULL otherwise
+    int **indexes;
+    char* code;
+    struct CallTree *parent; // parent
+} CallTree;
 
-#ifndef COMPILER_CALLTREE_H
-#define COMPILER_CALLTREE_H
-
-#endif//COMPILER_CALLTREE_H
+void createCallTree(CallTree *callTree, char *name);
+void addParent(CallTree *callTree, CallTree *parentTree);
+void addValue(CallTree *callTree, int value);
+void addCode(CallTree *callTree, char *code);
+void printTree(CallTree *callTree);

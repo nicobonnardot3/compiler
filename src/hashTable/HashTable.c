@@ -3,15 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CAPACITY 50000// Size of the HashTable.
-
-void createVar(HashTable *table, char *key, char *type);
-void createList(HashTable *table, char *key, int size);
-unsigned long getIndex(HashTable *table, char *key);
-void updateVar(HashTable *table, char *str, int val);
-int symbolVal(HashTable *table, char *str);
-void print_table(HashTable *table);
-void print_item(Ht_item *item);
+#define CAPACITY 50000
 
 unsigned long hash_function(char *str) {
     unsigned long i = 0;

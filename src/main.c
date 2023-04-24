@@ -1,47 +1,28 @@
 #include "hashTable/HashTable.h"
+#include "callTree/CallTree.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// ----- Vars -----
+CallTree *callTree;
 HashTable *varHashTable;
 HashTable *functionHashTable;
 int *list_index;
 
-int processParsing();
-
-int parseOperation(int a, int b, char *op);
-
+// ----- lex/yacc -----
 int yyparse();
-
 void yyerror(char const *s);
 
-extern void print_table(HashTable *table);
-
-extern void print_item(Ht_item *item);
-
-extern unsigned long hash_function(char *str);
-
-extern void create_table(HashTable *table, int size);
-
-extern void create_item(Ht_item *item, char *key);
-
-extern void free_item(Ht_item *item);
-
-extern void createVar(HashTable *table, char *key, char *type);
-
-extern void updateVar(HashTable *table, char *str, int val);
-
-extern int symbolVal(HashTable *table, char *str);
-
-extern void createList(HashTable *table, char *key, int size);
-
-extern void updateListVar(HashTable *table, char *listKey, int index, int value);
-
-extern unsigned long getIndex(HashTable *table, char *key);
-
+// ----- Utils -----
+int processParsing();
+int parseOperation(int a, int b, char *op);
+void extractTableVar(char *str, char *input);
+void extractVarIndex(char *str, int *index, char** src);
 
 int main(void) {
     list_index = malloc(sizeof(int));
+    *list_index = -1;
 
     varHashTable = (HashTable *) malloc(sizeof(HashTable));
     create_table(varHashTable, 50000);
@@ -49,17 +30,34 @@ int main(void) {
     functionHashTable = (HashTable *) malloc(sizeof(HashTable));
     create_table(functionHashTable, 50000);
 
+    // --------- Test Hash Table ---------
+//    createVar(varHashTable, "a", "int");
+//    updateVar(varHashTable, "a", 10);
+//
+//    createList(varHashTable, "testList", 10);
+//    updateListVar(varHashTable, "testList", 1, 5);
+//
+//    unsigned long index = getIndex(varHashTable, "testList");
+//
+//    Ht_item* item = varHashTable->items[index];
+//    print_item(item);
 
-    //    createVar(varHashTable, "a", "int");
-    //    updateVar(varHashTable, "a", 10);
-    //
-    //    createList(varHashTable, "testList", 10);
-    //    updateListVar(varHashTable, "testList", 1, 5);
-    //
-    //    unsigned long index = getIndex(varHashTable, "testList");
-    //
-    //    Ht_item* item = varHashTable->items[index];
-    //    print_item(item);
+//    char str[255] = "";
+//    int *index = (int *) malloc(sizeof(int));
+//    char x[255] = "a,-1";
+//    extractVarIndex(str, index, x);
+
+    // --------- Test Call Tree ---------
+//    CallTree *child = (CallTree *) malloc(sizeof(CallTree));
+//    createCallTree(child, "child1");
+//    addCode(child, "main");
+//    addValue(child, 0);
+//
+//    CallTree *parent = (CallTree *) malloc(sizeof(CallTree));
+//    createCallTree(parent, "Parent");
+//
+//    addParent(child, parent);
+//    printTree(child);
 
     processParsing();
 }
@@ -70,23 +68,35 @@ int processParsing() {
 
 void extractVarName(char *dest, char *str) {
     int i = 0;
-    while (str[i] && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0') {
+    while (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0') {
         i++;
     }
     strncat(dest, str, i);
 }
 
-void extractTableVar(char *str, int *index, char *input) {
+void extractTableVar(char *str, char *input) {
     int i = 0;
     while (input[i] != '[') i++;
     int j = i;
     while (input[j] != ']') j++;
 
-
     char *indexString = malloc(sizeof j - i + 1);
     strncpy(indexString, input + i + 1, j - i + 1);
     strncpy(str, input, i);
-    *index = atoi(indexString);
+    strcat(str, ",");
+    strcat(str, indexString);
+}
+
+void extractVarIndex(char *str, int *index, char** src) {
+    char newSrc[255];
+    printf("src: %s\n", *src);
+    strcpy(newSrc, *src);
+
+    printf("newSrc = %s", newSrc);
+    strcpy(str, strtok(newSrc, ","));
+    *index = atoi(strtok(NULL, ","));
+
+    printf("str: %s; index: %d\n", str, *index);
 }
 
 char *removeUnwantedChar(char *str) {
