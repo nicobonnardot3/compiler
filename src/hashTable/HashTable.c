@@ -209,8 +209,6 @@ int symbolVal(HashTable *table, char *str) {
     unsigned long index = getIndex(table, str);
     Ht_item *currentItem = table->items[index];
 
-    print_item(currentItem);
-
     if (currentItem == NULL)
         return NULL;
 
@@ -219,6 +217,8 @@ int symbolVal(HashTable *table, char *str) {
         return NULL;
 
     int *value = var->value;
+
+    if (value == NULL) return 0;
     return *value;
 }
 

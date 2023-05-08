@@ -10,7 +10,8 @@ void createCallTree(CallTree *callTree, char *name) {
         return;
     }
 
-    callTree->name = name;
+    callTree->name = malloc(sizeof(char) * 255);
+    strcpy(callTree->name, name);
     callTree->value = NULL;
     callTree->indexes = NULL;
     callTree->code = malloc(sizeof(char) * 255);
@@ -24,6 +25,7 @@ void addParent(CallTree *callTree, CallTree *parentTree) {
         printf("Call Tree is NULL\n");
         return;
     }
+
     if (parentTree == NULL) {
         printf("Parent Tree is NULL\n");
         return;
@@ -52,7 +54,23 @@ void addCode(CallTree *callTree, char *code) {
         return;
     }
 
-    callTree->code = code;
+    strcpy(callTree->code, code);
+}
+
+void addIndex(CallTree *callTree, int index) {
+    if (callTree == NULL) {
+        printf("Call Tree is NULL\n");
+        return;
+    }
+
+    if (callTree->indexes == NULL) {
+        callTree->indexes = malloc(sizeof(int));
+        callTree->indexes[0] = index;
+    } else {
+        int *newIndexes = realloc(callTree->indexes, sizeof(int) * (sizeof(callTree->indexes) + 1));
+        newIndexes[sizeof(callTree->indexes)] = index;
+        callTree->indexes = newIndexes;
+    }
 }
 
 // ------------------ aux ------------------
@@ -65,6 +83,7 @@ void printTree(CallTree *callTree) {
     printf("Name: %s, Value: %d, Indexes: n/a, Code: \"%s\"\n", callTree->name, callTree->value, callTree->code);
 
     if (callTree->parent != NULL) {
+        printf("Parent: %s\n\t", callTree->parent->name);
         printTree(callTree->parent);
     }
 }

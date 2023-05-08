@@ -3,6 +3,8 @@
 #include "y.tab.h"
 int yylex();
 int column = 1;
+int countColumns(char *str);
+int countLines(char *str);
 extern void yyerror (char const *s);
 %}
 
@@ -16,7 +18,12 @@ IS                      (u|U|l|L)*
 
 %%
 
-[\[(){};=,\]]           { column += 1; return *yytext; }
+
+"("                     { column += 1; return *yytext; }
+")"                     { column += 1; return *yytext; }
+
+
+[\[{};=,\]]           { column += 1; return *yytext; }
 
 "int"                   { column += 3; return INT; }
 "void"                  { column += 4; return VOID; }
@@ -62,8 +69,11 @@ IS                      (u|U|l|L)*
 " "                     { column += 1; }
 "\t"                    { column += 4; }
 
+
+
 "\n"                    {  column = 1; }
 
+"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { yylineno += countLines(yytext); column = countColumns(yytext); }
 "//".*                  {yylineno++; column = 0;}
 
 .                       {
@@ -75,3 +85,27 @@ IS                      (u|U|l|L)*
 %%
 
 int yywrap (void) {return 1;}
+
+int countLines(char *str) {
+    int count = 0;
+    char *p = str;
+    while (*p) {
+        if (*p == '\n')
+            count++;
+        p++;
+    }
+    return count;
+}
+
+int countColumns(char *str) {
+    int count = 0;
+    char *p = str;
+    while (*p) {
+        if (*p == '\n')
+            count = 0;
+        else
+            count++;
+        p++;
+    }
+    return count;
+}
