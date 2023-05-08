@@ -76,17 +76,23 @@ int main(void) {
     processParsing();
 }
 
-int processParsing() {
-    return yyparse();
-}
+int processParsing() { return yyparse(); }
 
-void extractVarName(char *dest, char *str) {
+char *extractVarName(char *str) {
     int i = 0;
-    while (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0') {
+    int size = strlen(str);
+    while (i < size &&
+           (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0' &&
+            str[i] != ',' && str[i] != '(' && str[i] != ')' && str[i] != '{' && str[i] != '}' && str[i] != '+' &&
+            str[i] != '-' && str[i] != '*' && str[i] != '/' && str[i] != '&' && str[i] != '|' && str[i] != '<' &&
+            str[i] != '>' && str[i] != '!' && str[i] != '=' && str[i] != '\n')) {
         i++;
     }
-    dest = realloc(dest, (i + 1) * sizeof(char));
-    strncat(dest, str, i);
+
+    char *newStr = malloc(sizeof(char) * (i + 1));
+    strncpy(newStr, str, i);
+
+    return newStr;
 }
 
 void extractTableVar(char *str, char *input) {
@@ -106,9 +112,7 @@ void extractVarIndex(char *str, int *index, char **src) {
 }
 
 char *removeUnwantedChar(char *str) {
-    if (str[strlen(str) - 1] == ';' || str[strlen(str) - 1] == ',') {
-        str[strlen(str) - 1] = '\0';
-    }
+    if (str[strlen(str) - 1] == ';' || str[strlen(str) - 1] == ',') { str[strlen(str) - 1] = '\0'; }
     return str;
 }
 

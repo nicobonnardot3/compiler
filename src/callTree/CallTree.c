@@ -62,8 +62,8 @@ void addCode(CallTree *callTree, char *code) {
         return;
     }
 
-    callTree->code = realloc(callTree->code, sizeof(char) * strlen(code));
-    char *newCode = malloc(sizeof(char) * strlen(code) + 1);
+    callTree->code = realloc(callTree->code, sizeof(char) * strlen(code) + 10);
+    char *newCode = malloc(sizeof(char) * strlen(code) + 10);
     strcpy(newCode, code);
     callTree->code = newCode;
 }

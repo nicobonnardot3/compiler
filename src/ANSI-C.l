@@ -43,14 +43,10 @@ IS                      (u|U|l|L)*
 "extern"                { column += 6; return EXTERN; }
 
 {L}({L}|{D})*           {   
-                            char *temp = strdup(yytext);
-                            if (temp == NULL) { /* handle allocation error*/}
-                            else {
-                                column += strlen(yytext); 
-                                yylval.id =temp; return (IDENTIFICATEUR);
-                            }
+                            column += strlen(yytext);
+                            yylval.id = yytext;
+                            return (IDENTIFICATEUR);
                         }
-
 0[xX]{H}+{IS}?          {
                             column += strlen(yytext); 
                             yylval.num = atoi(yytext); 
