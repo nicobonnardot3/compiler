@@ -4,20 +4,23 @@
 #include <string.h>
 
 // ------------------ IMPLEMENTATION ------------------
-void createCallTree(CallTree *callTree, char *name) {
-    if (callTree == NULL) {
-        printf("Call Tree is NULL\n");
-        return;
-    }
+CallTree createCallTree(char *name) {
+    CallTree callTree;
 
-    callTree->name = malloc(sizeof(char) * 255);
-    strcpy(callTree->name, name);
-    callTree->value = NULL;
-    callTree->indexes = NULL;
-    callTree->code = malloc(sizeof(char) * 255);
-    callTree->type = malloc(sizeof(char) * 5);
-    strcpy(callTree->code, "");
-    callTree->parent = NULL;
+    printf("Creating Call Tree with name: %s\n", name);
+
+    callTree.name = malloc(sizeof(char) * strlen(name));
+    char *newName = malloc(sizeof(char) * strlen(name) + 1);
+    strcpy(newName, name);
+    callTree.name = newName;
+    callTree.value = NULL;
+    callTree.indexes = NULL;
+    callTree.type = malloc(sizeof(char) * 255);
+    callTree.code = malloc(sizeof(char) * 255);
+    strcpy(callTree.code, "");
+    callTree.parent = NULL;
+
+    return callTree;
 }
 
 void addParent(CallTree *callTree, CallTree *parentTree) {
@@ -54,7 +57,15 @@ void addCode(CallTree *callTree, char *code) {
         return;
     }
 
-    strcpy(callTree->code, code);
+    if (code == NULL) {
+        printf("Code is NULL\n");
+        return;
+    }
+
+    callTree->code = realloc(callTree->code, sizeof(char) * strlen(code));
+    char *newCode = malloc(sizeof(char) * strlen(code) + 1);
+    strcpy(newCode, code);
+    callTree->code = newCode;
 }
 
 void addIndex(CallTree *callTree, int index) {

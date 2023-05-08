@@ -7,7 +7,7 @@ typedef struct CallTree {
     struct CallTree *parent;// parent
 } CallTree;
 
-void createCallTree(CallTree *callTree, char *name);
+CallTree createCallTree(char *name);
 void addParent(CallTree *callTree, CallTree *parentTree);
 void addValue(CallTree *callTree, int value);
 void addCode(CallTree *callTree, char *code);

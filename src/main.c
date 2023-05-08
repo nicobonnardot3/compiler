@@ -36,9 +36,10 @@ int main(void) {
     functionHashTable = (HashTable *) malloc(sizeof(HashTable));
     create_table(functionHashTable, 50000);
 
-    tree = (CallTree *) malloc(sizeof(CallTree));
-    createCallTree(tree, "programme");
-    addCode(tree, "");
+    CallTree treeValue = createCallTree("programme");
+    addCode(&treeValue, "");
+
+    tree = &treeValue;
 
     declarationTree = (CallTree **) calloc(1, sizeof(CallTree *));
     functionTree = (CallTree **) calloc(1, sizeof(CallTree *));
@@ -84,6 +85,7 @@ void extractVarName(char *dest, char *str) {
     while (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0') {
         i++;
     }
+    dest = realloc(dest, (i + 1) * sizeof(char));
     strncat(dest, str, i);
 }
 
@@ -138,7 +140,7 @@ void yyerror(char const *s) {
 
 void printList(CallTree **list) {
     printf("-------- List --------\n");
-    printf("List size: %d\n", sizeof(list) / sizeof(list[0]));
+    printf("List size: %lu\n", sizeof(list));
     int i = 0;
     while (list[i] != NULL) {
         printTree(list[i]);

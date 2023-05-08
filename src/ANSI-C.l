@@ -42,9 +42,20 @@ IS                      (u|U|l|L)*
 "return"                { column += 6; return RETURN; }
 "extern"                { column += 6; return EXTERN; }
 
-{L}({L}|{D})*           { column += strlen(yytext); yylval.id = yytext; return IDENTIFICATEUR; } // IDENTIFICATEUR
+{L}({L}|{D})*           {   
+                            char *temp = strdup(yytext);
+                            if (temp == NULL) { /* handle allocation error*/}
+                            else {
+                                column += strlen(yytext); 
+                                yylval.id =temp; return (IDENTIFICATEUR);
+                            }
+                        }
 
-0[xX]{H}+{IS}?          { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // HEXA DECIMAL
+0[xX]{H}+{IS}?          {
+                            column += strlen(yytext); 
+                            yylval.num = atoi(yytext); 
+                            return CONSTANTE; 
+                        } // HEXA DECIMAL
 0{D}+{IS}?              { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // DECIMAL
 {D}+{IS}?               { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // INT
 
