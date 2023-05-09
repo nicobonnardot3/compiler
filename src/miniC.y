@@ -32,7 +32,7 @@ extern int parseOperation(int a, int b, char* op);
 %union {
 	int num;
 	CallTree calltree;
-	CallTree* calltree_list;
+	CallTree** calltree_list;
 	char* id;
 	char* bin_op;
 	char* type;
@@ -104,7 +104,10 @@ liste_declarations :
 						while ($2[size2] != NULL) size2++;
 
 						list = (CallTree**) realloc(list, (size + size2) * sizeof(CallTree*));
-						for (int i = 0; i < size2; i++) list[size + i - 1] = $2[i];
+						for (int i = 0; i < size2; i++) {
+							CallTree* node = $2[i];
+							list[size + i - 1] = node;
+						}
 					}
 					$$ = list;
 				}
@@ -319,11 +322,11 @@ param :
 liste_instructions:
 		liste_instructions instruction
 			{
-				CallTree* list = $1;
+				CallTree** list = $1;
 				int size = 0;
 				while (list[size] != NULL) size++;
 
-				list = (CallTree*) realloc(list, (size + 2) * sizeof(CallTree));
+				list = (CallTree**) realloc(list, (size + 2) * sizeof(CallTree *));
 
 				CallTree node = $2;
 				list[size] = &node;
@@ -331,9 +334,9 @@ liste_instructions:
 			}
 	|	instruction
 			{
-				CallTree* list = (CallTree*) calloc(1, sizeof(CallTree));
+				CallTree** list = (CallTree**) calloc(1, sizeof(CallTree*));
 				CallTree node = $1;
-				list[0] = node;
+				list[0] = &node;
 				printf("%p", list[0]);
 				$$ = list;
 			}
@@ -669,6 +672,8 @@ affectation :	// sous-arbres : := -> nom_var, := -> EXPR
 
 			addCode(&node, code);
 
+			printf("Affectation : %s\n", code);
+
 			$$ = node;
 		}
 ;
@@ -870,21 +875,21 @@ expression  :	// var et const = node, binop = sous arbre
 liste_expressions :
 		liste_expressions ',' expression
 		{
-			CallTree* list = $1;
+			CallTree** list = $1;
 			int size = 0;
 			while (list[size] != NULL) size++;
 
-			list = realloc(list, (size + 2) * sizeof(CallTree));
+			list = realloc(list, (size + 2) * sizeof(CallTree *));
 			CallTree tmp = $3;
-			list[size] = tmp;
+			list[size] = &tmp;
 
 			$$ = list;
 		}
 	| 	expression
 		{
-			CallTree* list = (CallTree**) calloc(1, sizeof(CallTree));
+			CallTree** list = (CallTree**) calloc(1, sizeof(CallTree *));
 			CallTree tmp = $1;
-			list[0] = tmp;
+			list[0] = &tmp;
 			$$ = list;
 		}
 ;
