@@ -74,6 +74,8 @@ int main(void) {
     //    printTree(child);
 
     processParsing();
+
+    printf("Compiled successfully\n");
 }
 
 int processParsing() { return yyparse(); }
@@ -81,6 +83,7 @@ int processParsing() { return yyparse(); }
 char *extractVarName(char *str) {
     int i = 0;
     int size = strlen(str);
+    if (size < 2) return str;
     while (i < size &&
            (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0' &&
             str[i] != ',' && str[i] != '(' && str[i] != ')' && str[i] != '{' && str[i] != '}' && str[i] != '+' &&

@@ -7,12 +7,7 @@
 CallTree createCallTree(char *name) {
     CallTree callTree;
 
-    printf("Creating Call Tree with name: %s\n", name);
-
-    callTree.name = malloc(sizeof(char) * strlen(name));
-    char *newName = malloc(sizeof(char) * strlen(name) + 1);
-    strcpy(newName, name);
-    callTree.name = newName;
+    callTree.name = strdup(name);
     callTree.value = NULL;
     callTree.indexes = NULL;
     callTree.type = malloc(sizeof(char) * 255);

@@ -8,14 +8,13 @@
 unsigned long hash_function(char *str) {
     unsigned long i = 0;
 
-    for (int j = 0; str[j]; j++)
-        i += str[j];
+    for (int j = 0; str[j]; j++) i += str[j];
 
     return i % CAPACITY;
 }
 
 void create_item(Ht_item *item, char *key, char *type, int size) {
-    item->key = (char *) malloc(strlen(key) + 1);
+    item->key = (char *) malloc(strlen(key) + 10);
     item->var = (Variable *) malloc(sizeof(Variable *));
     strcpy(item->key, key);
     Variable *var = item->var;
@@ -34,8 +33,7 @@ void create_table(HashTable *table, int size) {
     table->count = 0;
     table->items = (Ht_item **) calloc(size, sizeof(Ht_item *));
 
-    for (int i = 0; i < table->size; i++)
-        table->items[i] = NULL;
+    for (int i = 0; i < table->size; i++) table->items[i] = NULL;
 }
 
 void free_var(Variable *var) {
@@ -56,8 +54,7 @@ void free_table(HashTable *table) {
     for (int i = 0; i < table->size; i++) {
         Ht_item *item = table->items[i];
 
-        if (item != NULL)
-            free_item(item);
+        if (item != NULL) free_item(item);
     }
 
     free(table->items);
@@ -75,7 +72,8 @@ void print_table(HashTable *table) {
 
         Variable *var = item->var;
         int value = var->value;
-        if (strcmp(var->type, "int") == 0) printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, value);
+        if (strcmp(var->type, "int") == 0)
+            printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, value);
         else
             print_item(item);
     }
@@ -97,15 +95,16 @@ void print_item(Ht_item *item) {
 
     if (strcmp(var->type, "int") == 0) {
         int *value = var->value;
-        printf("----------------- item ----------------- \n   key: %s\n   value: %d\n----------------------------------------\n", item->key, *(value));
+        printf("----------------- item ----------------- \n   key: %s\n   value: "
+               "%d\n----------------------------------------\n",
+               item->key, *(value));
         return;
     }
     int size = var->size / sizeof(int);
     int *list = var->value;
     printf("----------------- table item -----------------\n");
     printf("Key: %s, size: %d\n", item->key, size);
-    for (int i = 0; i < size; i++)
-        printf("Index: %d, value: %d\n", i, *(list + i));
+    for (int i = 0; i < size; i++) printf("Index: %d, value: %d\n", i, *(list + i));
 
     printf("----------------------------------------\n");
 }
@@ -121,13 +120,12 @@ void createVar(HashTable *table, char *key, char *type) {
 
     unsigned long index = hash_function(key);
 
-    while (table->items[index] != NULL)
-        index++;
+    while (table->items[index] != NULL) index++;
 
     table->items[index] = item;
     table->count++;
 
-    print_table(table);
+    // print_table(table);
 }
 
 void createList(HashTable *table, char *key, int size) {
@@ -140,8 +138,7 @@ void createList(HashTable *table, char *key, int size) {
     // Computes the index.
     unsigned long index = hash_function(key);
 
-    while (table->items[index] != NULL)
-        index++;
+    while (table->items[index] != NULL) index++;
 
 
     Ht_item *current_item = table->items[index];
@@ -150,7 +147,7 @@ void createList(HashTable *table, char *key, int size) {
         table->count++;
     }
 
-    print_table(table);
+    // print_table(table);
 }
 
 void updateVar(HashTable *table, char *str, int value) {
@@ -202,19 +199,17 @@ void updateListVar(HashTable *table, char *listKey, int index, int value) {
     int *item = list + index;
     *item = value;
 
-    print_table(table);
+    // print_table(table);
 }
 
 int symbolVal(HashTable *table, char *str) {
     unsigned long index = getIndex(table, str);
     Ht_item *currentItem = table->items[index];
 
-    if (currentItem == NULL)
-        return NULL;
+    if (currentItem == NULL) return NULL;
 
     Variable *var = currentItem->var;
-    if (var == NULL)
-        return NULL;
+    if (var == NULL) return NULL;
 
     int *value = var->value;
 
@@ -226,12 +221,10 @@ int tableValue(HashTable *table, char *str, int index) {
     unsigned long hashTableIndex = getIndex(table, str);
     Ht_item *currentItem = table->items[hashTableIndex];
 
-    if (currentItem == NULL)
-        return NULL;
+    if (currentItem == NULL) return NULL;
 
     Variable *var = currentItem->var;
-    if (var == NULL)
-        return NULL;
+    if (var == NULL) return NULL;
 
     int *x = var->value + index;
     return *x;
@@ -239,8 +232,7 @@ int tableValue(HashTable *table, char *str, int index) {
 
 unsigned long getIndex(HashTable *table, char *key) {
     unsigned long index = hash_function(key);
-    while (table->items[index] != NULL && strcmp(table->items[index]->key, key) != 0)
-        index++;
+    while (table->items[index] != NULL && strcmp(table->items[index]->key, key) != 0) index++;
 
     return index;
 }

@@ -3,10 +3,10 @@ CFLAGS=-D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasyn
 all: debug
 
 parser.out: lex.yy.c y.tab.c
-	gcc $(CFLAGS) -g main.c lex.yy.c callTree/CallTree.c hashTable/HashTable.c y.tab.c -o parser.out
+	gcc $(CFLAGS) -o parser.out -g main.c callTree/CallTree.c hashTable/HashTable.c y.tab.c lex.yy.c -ll
 
 debug: lex.yy.c y.tab.c
-	gcc $(CFLAGS) -g main.c lex.yy.c callTree/CallTree.c hashTable/HashTable.c y.tab.c -o parser.out
+	gcc $(CFLAGS) -o parser.out -g main.c callTree/CallTree.c hashTable/HashTable.c y.tab.c lex.yy.c -ll
 
 lex.yy.c: y.tab.c ANSI-C.l
 	lex -o lex.yy.c ANSI-C.l
