@@ -1,9 +1,114 @@
 digraph G {
 
-node_main_45 [label="main, int" shape=invtrapezium color=blue];
+node_main_137 [label="main, int" shape=invtrapezium color=blue];
+node_bloc_141 [shape=ellipse label="BLOC"];
+node_main_137 -> node_bloc_141
 
-node_main_45 -> node_main_45
+node_affect_node_var_i_17_node_45000_21_21 [label=":=" shape=ellipse];
 
-node_main_45 -> node_main_45
+node_var_i_17 [shape=ellipse label="i"];
+node_affect_node_var_i_17_node_45000_21_21 -> node_var_i_17
+
+node_45000_21 [shape=ellipse label="45000"];node_affect_node_var_i_17_node_45000_21_21 -> node_45000_21
+
+node_bloc_141 -> node_affect_node_var_i_17_node_45000_21_21
+
+node_affect_node_var_j_25_node_expr_29_33 [label=":=" shape=ellipse];
+
+node_var_j_25 [shape=ellipse label="j"];
+node_affect_node_var_j_25_node_expr_29_33 -> node_var_j_25
+
+node_expr_29 [shape=ellipse label="-"];
+
+node_123_29 [shape=ellipse label="123"];node_expr_29 -> node_123_29
+node_affect_node_var_j_25_node_expr_29_33 -> node_expr_29
+
+node_bloc_141 -> node_affect_node_var_j_25_node_expr_29_33
+
+node_affect_node_var_k_37_node_43_41_41 [label=":=" shape=ellipse];
+
+node_var_k_37 [shape=ellipse label="k"];
+node_affect_node_var_k_37_node_43_41_41 -> node_var_k_37
+
+node_43_41 [shape=ellipse label="43"];node_affect_node_var_k_37_node_43_41_41 -> node_43_41
+
+node_bloc_141 -> node_affect_node_var_k_37_node_43_41_41
+
+node_appel_printd_129 [shape=septagon label="printd"];
+
+node_expr_125 [shape=ellipse label="/"];
+
+node_expr_105 [shape=ellipse label="<<"];
+
+node_expr_97 [shape=ellipse label="-"];
+
+node_expr_89 [shape=ellipse label="*"];
+
+node_expr_81 [shape=ellipse label="*"];
+
+node_expr_73 [shape=ellipse label="+"];
+
+node_expr_65 [shape=ellipse label="/"];
+
+node_expr_61 [shape=ellipse label="*"];
+
+node_expr_53 [shape=ellipse label="+"];
+
+node_var_i_45 [shape=ellipse label="i"];
+node_expr_53 -> node_var_i_45
+
+node_var_j_49 [shape=ellipse label="j"];
+node_expr_53 -> node_var_j_49
+node_expr_61 -> node_expr_53
+
+node_var_k_57 [shape=ellipse label="k"];
+node_expr_61 -> node_var_k_57
+node_expr_65 -> node_expr_61
+
+node_100_65 [shape=ellipse label="100"];node_expr_65 -> node_100_65
+node_expr_73 -> node_expr_65
+
+node_var_j_69 [shape=ellipse label="j"];
+node_expr_73 -> node_var_j_69
+node_expr_81 -> node_expr_73
+
+node_var_k_77 [shape=ellipse label="k"];
+node_expr_81 -> node_var_k_77
+node_expr_89 -> node_expr_81
+
+node_var_i_85 [shape=ellipse label="i"];
+node_expr_89 -> node_var_i_85
+node_expr_97 -> node_expr_89
+
+node_var_j_93 [shape=ellipse label="j"];
+node_expr_97 -> node_var_j_93
+node_expr_105 -> node_expr_97
+
+node_var_k_101 [shape=ellipse label="k"];
+node_expr_105 -> node_var_k_101
+node_expr_125 -> node_expr_105
+
+node_expr_121 [shape=ellipse label=">>"];
+
+node_expr_117 [shape=ellipse label="-"];
+
+node_var_k_109 [shape=ellipse label="k"];
+node_expr_117 -> node_var_k_109
+
+node_var_j_113 [shape=ellipse label="j"];
+node_expr_117 -> node_var_j_113
+node_expr_121 -> node_expr_117
+
+node_2_121 [shape=ellipse label="2"];node_expr_121 -> node_2_121
+node_expr_125 -> node_expr_121
+node_appel_printd_129 -> node_expr_125
+
+node_bloc_141 -> node_appel_printd_129
+
+node_return_node_0_133_133 [shape=trapezium label="RETURN" color=blue];
+
+node_0_133 [shape=ellipse label="0"];node_return_node_0_133_133 -> node_0_133
+
+node_bloc_141 -> node_return_node_0_133_133
 
 }

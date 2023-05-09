@@ -9,8 +9,10 @@ CallTree *tree;
 CallTree **declarationTree;
 CallTree **functionTree;
 
-HashTable *varHashTable;
-HashTable *functionHashTable;
+
+HashTableList *hashTableList;
+HashTable varHashTable;
+HashTable functionHashTable;
 
 int *nodeIndex;
 
@@ -30,11 +32,18 @@ int main(void) {
     nodeIndex = malloc(sizeof(int));
     *nodeIndex = 1;
 
-    varHashTable = (HashTable *) malloc(sizeof(HashTable));
-    create_table(varHashTable, 50000);
+    HashTable *varHashTable = (HashTable *) malloc(sizeof(HashTable));
+    HashTable *functionHashTable = (HashTable *) malloc(sizeof(HashTable));
 
-    functionHashTable = (HashTable *) malloc(sizeof(HashTable));
-    create_table(functionHashTable, 50000);
+    *varHashTable = create_table(50000);
+    varHashTable->prev = NULL;
+
+    *functionHashTable = create_table(50000);
+    functionHashTable->prev = NULL;
+
+    hashTableList = (HashTableList *) malloc(sizeof(HashTableList));
+    hashTableList->currentScope = varHashTable;
+    hashTableList->size = 1;
 
     CallTree treeValue = createCallTree("programme");
     addCode(&treeValue, "");

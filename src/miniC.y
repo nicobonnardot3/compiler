@@ -1,4 +1,3 @@
-
 %code requires {
 	#include "callTree/CallTree.h"
 }
@@ -36,6 +35,7 @@ extern int parseOperation(int a, int b, char* op);
 	char* id;
 	char* bin_op;
 	char* type;
+	int* indexes;
 }
 
 %token <id> IDENTIFICATEUR "identifier"
@@ -44,10 +44,13 @@ extern int parseOperation(int a, int b, char* op);
 %token BREAK "break" RETURN "return" PLUS "+" MOINS MUL "*" DIV "/" LSHIFT "<<" RSHIFT ">>" BAND "&&" BOR "||" LAND "&" LOR "|" LT "<" GT ">"
 %token GEQ ">=" LEQ "<=" EQ "=" NEQ "-" NOT "!" EXTERN "extern"
 
-%type <calltree> declarateur_list variable appel "appel" condition "condition" instruction "instruction" affectation "affectation" iteration "iteration" selection "selection" saut "saut" bloc "bloc" expression "expression" declarateur "declarateur" fonction "fonction"
+%type <calltree> variable appel "appel" condition "condition" instruction "instruction" affectation "affectation" iteration "iteration" selection "selection" saut "saut" bloc "bloc" expression "expression" declarateur "declarateur" fonction "fonction"
 %type <calltree_list> liste_expressions "liste_expressions" liste_instructions "liste_instructions" declaration "declaration" liste_declarateurs "declarateurs" liste_declarations "declarations" liste_fonctions "fonctions"
 %type <bin_op> binary_op binary_rel binary_comp
 %type <type> type
+%type <id> declarateur_list
+%type <indexes> liste_indexes
+
 
 %left PLUS MOINS
 %left MUL DIV
@@ -144,7 +147,9 @@ declaration :
 				int size = 1;
 				while (list[size] != NULL) size++;
 
-				for (int i = 0; i < size; i++) list[i]->type = $1;
+				// for (int i = 0; i < size; i++) {
+				// 	list[i]->type = $1;
+				// }
 				$$ = list;
 			}
 ;
@@ -156,20 +161,22 @@ liste_declarateurs:
 						while (list[size] != NULL) size++;
 
 						list = (CallTree**) realloc(list, (size + 1) * sizeof(CallTree*));
-						CallTree node = $3;
-						list[size] = &node;
+						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
+						*node = $3;
+						list[size] = node;
 						$$ = list;
 					}
 			|	declarateur
 					{
 						CallTree** list = (CallTree**) calloc(1, sizeof(CallTree*));
-						CallTree node = $1;
-						list[0] = &node;
+						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
+						*node = $1;
+						list[0] = node;
 						$$ = list;
 					}
 ;
 declarateur :
-		IDENTIFICATEUR 
+		IDENTIFICATEUR
 			{
 				char* str = removeUnwantedChar($1);
 
@@ -181,29 +188,27 @@ declarateur :
 
 				char* code = (char*) malloc(sizeof(char) * (strlen(nodeName) + strlen(str) + 60));
 				sprintf(code, "%s [shape=ellipse label=\"%s, int\"];", nodeName, str);
-				printf("declare code(%s): %s", str, code);
-        
+
 				addCode(&node, code);
-				
-				createVar(varHashTable, str, "int");
+				initVar(str);
 
 				$$ = node;
 			}
-	|	declarateur_list '[' CONSTANTE ']'
+	|	declarateur_list liste_indexes
 			{
-				int size = $3;
-				createList(varHashTable, $1.name, size);
+				int sizes = $2;
+				initList($1, sizes);
 
-				char* nodeName = (char*) malloc(sizeof(char) * (strlen($1.name) + 30));
-				sprintf(nodeName, "node_%s_%d", $1.name, *nodeIndex);
+				char* nodeName = (char*) malloc(sizeof(char) * (strlen($1) + 30));
+				sprintf(nodeName, "node_%s_%d", $1, *nodeIndex);
 				*nodeIndex = *nodeIndex + 1;
 
-				char* code = (char*) malloc(sizeof(char) * (strlen(nodeName) + strlen($1.name) + 60));
-				sprintf(code, "\n%s [shape=ellipse label=\"%s\"];", nodeName, $1.name);
+				char* code = (char*) malloc(sizeof(char) * (strlen(nodeName) + strlen($1) + 60));
+				sprintf(code, "\n%s [shape=ellipse label=\"%s\"];", nodeName, $1);
 
 				CallTree node = createCallTree(nodeName);
 
-				addIndex(&node, $3);
+				addIndex(&node, $2);
 				addCode(&node, code);
 				
 				$$ = node;
@@ -213,11 +218,25 @@ declarateur_list :
 		IDENTIFICATEUR 
 			{
 				char* str = extractVarName($1);
-				
-				CallTree node = createCallTree(str);
-				addCode(&node, "");
-				
-				$$ = node;
+				$$ = str;
+			}
+;
+liste_indexes: 
+		liste_indexes '[' CONSTANTE ']'
+			{
+				int *indexes = $1;
+				int size = 1;
+				while (indexes[size] != NULL) size++;
+
+				indexes = (int *) realloc(indexes, (size + 1) * sizeof(int));
+				indexes[size] = $3;
+				$$ = indexes;
+			}
+	|	CONSTANTE
+			{
+				int *indexes = (int *) calloc(1, sizeof(int));
+				indexes[0] = $1;
+				$$ = indexes;
 			}
 ;
 fonction :	
@@ -242,8 +261,17 @@ fonction :
 
 				CallTree node = createCallTree(nodeId);
 
-				char* nodeCode = (char*) malloc(sizeof(char) * (strlen(nodeId) + strlen(nodeName) + 70));
-				sprintf(nodeCode, "\n%s [label=\"%s\" shape=invtrapezium color=blue];\n", nodeId, nodeName);
+				
+				char* blocName = (char*) malloc(sizeof(char) * 40);
+				sprintf(blocName, "node_bloc_%d", *nodeIndex);
+
+				CallTree nodeBloc = createCallTree(blocName);
+
+				char* codeBloc = (char*) malloc(sizeof(char) * (2 * strlen(blocName) + strlen(nodeId) + 60));
+				sprintf(codeBloc, "%s [shape=ellipse label=\"BLOC\"];\n%s -> %s\n", blocName,  nodeId, blocName);
+
+				char* nodeCode = (char*) malloc(sizeof(char) * (strlen(codeBloc) + strlen(nodeId) + strlen(nodeName) + 70));
+				sprintf(nodeCode, "\n%s [label=\"%s\" shape=invtrapezium color=blue];\n%s", nodeId, nodeName, codeBloc);
 
 				node.type = type;
 
@@ -264,8 +292,8 @@ fonction :
 				while (liste_instructions[i] != NULL) {
 					addParent(liste_instructions[i], &node);
 
-					char* codeLien = (char*) malloc(sizeof(char) * (strlen(liste_instructions[i]->name) + strlen(nodeId) + 255));
-					sprintf(codeLien, "\n%s -> %s\n", nodeId, liste_instructions[i]->name);
+					char* codeLien = (char*) malloc(sizeof(char) * (strlen(liste_instructions[i]->name) + strlen(blocName) + 255));
+					sprintf(codeLien, "\n%s -> %s\n", blocName, liste_instructions[i]->name);
 
 					nodeCode = (char*) realloc(nodeCode, sizeof(char) * (strlen(nodeCode) + strlen(liste_instructions[i]->code) + strlen(codeLien) + 255));
 					strcat(nodeCode, liste_instructions[i]->code);
@@ -328,21 +356,20 @@ liste_instructions:
 
 				list = (CallTree**) realloc(list, (size + 2) * sizeof(CallTree *));
 
-				CallTree node = $2;
-				list[size] = &node;
+				CallTree *node = (CallTree*) malloc(sizeof(CallTree));
+				*node = $2;
+				list[size] = node;
 				$$ = list;
 			}
 	|	instruction
 			{
 				CallTree** list = (CallTree**) calloc(1, sizeof(CallTree*));
-				CallTree node = $1;
-				list[0] = &node;
-				printf("%p", list[0]);
+				CallTree *node = (CallTree*) malloc(sizeof(CallTree));
+				*node = $1;
+				list[0] = node;
 				$$ = list;
 			}
-	|		{
-				$$ = NULL;
-			}
+	|		{ $$ = NULL; }
 ;
 instruction :
 		iteration 		{ $$ = $1; }
@@ -449,7 +476,7 @@ selection :
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 		
 			char* code = (char*) malloc(sizeof(char) * (strlen(condition.code) + strlen(instruction.code) + strlen(codeLien) + strlen(codeLien2) + strlen(nodeName) + 60));
-			sprintf(code, "\n%s [shape=ellipse label=\"IF\"];\n", nodeName);
+			sprintf(code, "\n%s [shape=diamond label=\"IF\"];\n", nodeName);
 			
 			strcat(code, condition.code);
 			strcat(code, codeLien);
@@ -485,7 +512,7 @@ selection :
 			sprintf(codeLien3, "%s -> %s\n", nodeName, instruction2.name);
 			
 			char* code = (char*) malloc(sizeof(char) * (strlen(condition.code) + strlen(instruction1.code) + strlen(instruction2.code) + strlen(codeLien) + strlen(codeLien2) + strlen(codeLien3) + strlen(nodeName) + 60));
-			sprintf(code, "\n%s [shape=diam label=\"IF\"];\n", nodeName);
+			sprintf(code, "\n%s [shape=diamond label=\"IF\"];\n", nodeName);
 
 			strcat(code, condition.code);
 			strcat(code, codeLien);
@@ -519,7 +546,7 @@ selection :
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(expression.code) + strlen(instruction.code) + strlen(codeLien) + strlen(codeLien2) + strlen(nodeName) + 60));
-			sprintf(code, "\n%s [shape=ellipse label=\"SWITCH\"];\n", nodeName);
+			sprintf(code, "\n%s [shape=diamond label=\"SWITCH\"];\n", nodeName);
 
 			strcat(code, expression.code);
 			strcat(code, codeLien);
@@ -640,17 +667,17 @@ saut :
 			$$ = node;
 		}
 ;
-affectation :	// sous-arbres : := -> nom_var, := -> EXPR
+affectation : // sous-arbres : := -> nom_var, := -> EXPR
 	variable '=' expression
 		{
 			CallTree var = $1;
 			CallTree expr = $3;
 
+			updateVar(var.var_name, expr.value);
+
 			char* nodeName = malloc(sizeof(char) * (strlen(var.name) + strlen(expr.name) + 60));
 			sprintf(nodeName, "node_affect_%s_%s_%d", var.name, expr.name, *nodeIndex);
 			*nodeIndex = *nodeIndex + 1;
-
-			CallTree node = createCallTree(nodeName);
 
 			char* code2 = (char*) malloc(sizeof(char) * (strlen(var.name) + strlen(nodeName) + 60));
 			sprintf(code2, "%s -> %s\n", nodeName, var.name);
@@ -666,12 +693,13 @@ affectation :	// sous-arbres : := -> nom_var, := -> EXPR
 			strcat(code, expr.code);
 			strcat(code, code3);
 
+			CallTree node = createCallTree(nodeName);
 			addParent(&var, &node);
 			addParent(&expr, &node);
 
 			addCode(&node, code);
 
-			printf("Affectation : %s\n", code);
+			// printf("Affectation : %s\n", code);
 
 			$$ = node;
 		}
@@ -747,26 +775,26 @@ variable :
 		IDENTIFICATEUR
 			{
 				char* str = extractVarName($1);
+
 				char* nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50));
 				sprintf(nodeName, "node_var_%s_%d", str, *nodeIndex);
 				*nodeIndex = *nodeIndex + 1;
 
 				CallTree node = createCallTree(nodeName);
+				node.var_name = str;
 
-				int value = symbolVal(varHashTable, str);
+				int value = symbolVal(str);
 				addValue(&node, value);
 
 				char* code = malloc(sizeof(char) * (strlen(nodeName) + strlen(str) + 60));
 				sprintf(code, "\n%s [shape=ellipse label=\"%s\"];\n", nodeName, str);
 				addCode(&node, code);
 
-				printTree(&node);
-
 				$$ = node;
 			}
-	|	variable '[' expression ']' 
+	|	variable liste_indexes
 		{
-			char *str = (char*) malloc(sizeof(char) * strlen($1.name));
+			char *str = (char*) malloc(sizeof(char) * strlen($1.name) + 10);
 			strcpy(str, $1.name);
 
 			char *nodeName = (char*) malloc(sizeof(char) * strlen(str) + 20);
@@ -774,11 +802,13 @@ variable :
 			*nodeIndex = *nodeIndex + 1;
 
 			CallTree node = createCallTree(nodeName);
-
-			int index = $3.value;
+			node.var_name = str;
 
 			addCode(&node, "");
 			addIndex(&node, index);
+
+			int value = tableValue(str, $2[0]);
+			addValue(&node, value);
 
 			$$ = node;
 		}
@@ -811,6 +841,25 @@ expression  :	// var et const = node, binop = sous arbre
 
 			addCode(&node, code);
 
+			int value = NULL;
+			if (strcmp($2, "+") == 0)  value = child1.value + child2.value;
+			 else if (strcmp($2, "-") == 0)  value = child1.value - child2.value;
+			 else if (strcmp($2, "*") == 0)  value = child1.value * child2.value;
+			 else if (strcmp($2, "/") == 0) {
+				if (child2.value == 0) {
+					printf("Erreur : division par 0\n");
+				} else value = child1.value / child2.value;
+			 }
+			 else if (strcmp($2, ">>") == 0)  value = child1.value >> child2.value;
+			 else if (strcmp($2, "<<") == 0)  value = child1.value << child2.value;
+			 else if (strcmp($2, "&") == 0)  value = child1.value & child2.value;
+			 else if (strcmp($2, "|") == 0)  value = child1.value | child2.value;
+			 else 
+				printf("Erreur : opérateur non reconnu\n");
+			
+
+			addValue(&node, value);
+
 			addParent(&node, &child1);
 			addParent(&node, &child2);
 			$$ = node; 
@@ -833,6 +882,9 @@ expression  :	// var et const = node, binop = sous arbre
 			strcat(code, tmp);
 
 			addCode(&node, code);
+
+			int value = -child.value;
+			addValue(&node, value);
 
 			addParent(&node, &child);
 			$$ = node;
@@ -879,16 +931,18 @@ liste_expressions :
 			while (list[size] != NULL) size++;
 
 			list = realloc(list, (size + 2) * sizeof(CallTree *));
-			CallTree tmp = $3;
-			list[size] = &tmp;
+			CallTree* tmp = (CallTree*) malloc(sizeof(CallTree));
+			*tmp = $3;
+			list[size] = tmp;
 
 			$$ = list;
 		}
 	| 	expression
 		{
 			CallTree** list = (CallTree**) calloc(1, sizeof(CallTree *));
-			CallTree tmp = $1;
-			list[0] = &tmp;
+			CallTree* tmp = (CallTree*) malloc(sizeof(CallTree));
+			*tmp = $1;
+			list[0] = tmp;
 			$$ = list;
 		}
 ;
@@ -984,11 +1038,11 @@ condition :
 ;
 binary_op :	
 		PLUS 	{ $$ = "+"; }
-	|   	MOINS	{ $$ = "-"; }
+	|   MOINS	{ $$ = "-"; }
 	|	MUL 	{ $$ = "*"; }
 	|	DIV 	{ $$ = "/"; }
-	|   	LSHIFT	{ $$ = "<<"; }
-	|   	RSHIFT	{ $$ = ">>"; }
+	|   LSHIFT	{ $$ = "<<"; }
+	|   RSHIFT	{ $$ = ">>"; }
 	|	BAND	{ $$ = "&"; }
 	|	BOR	{ $$ = "|"; }
 ;
