@@ -23,7 +23,7 @@ IS                      (u|U|l|L)*
 ")"                     { column += 1; return *yytext; }
 
 
-[\[{};=,\]]           { column += 1; return *yytext; }
+[\[{}:;=,\]]           { column += 1; return *yytext; }
 
 "int"                   { column += 3; return INT; }
 "void"                  { column += 4; return VOID; }
@@ -44,7 +44,7 @@ IS                      (u|U|l|L)*
 
 {L}({L}|{D})*           {   
                             column += strlen(yytext);
-                            yylval.id = yytext;
+                            yylval.id = strdup(yytext);
                             return (IDENTIFICATEUR);
                         }
 0[xX]{H}+{IS}?          {

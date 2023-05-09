@@ -1,11 +1,9 @@
 digraph G {
 
-node_main_93 [label="main, int" shape=invtrapezium color=blue];
+node_main_45 [label="main, int" shape=invtrapezium color=blue];
 
-node_main_93 -> node_main_93
+node_main_45 -> node_main_45
 
-node_main_93 -> node_main_93
-
-node_main_93 -> node_main_93
+node_main_45 -> node_main_45
 
 }

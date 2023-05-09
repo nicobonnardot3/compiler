@@ -538,19 +538,18 @@ selection :
 			int constante = $2;
 			CallTree instruction = $4;
 
-			char* nodeName = malloc(sizeof(char) * (strlen(constante) + 40));
-			sprintf(nodeName, "node_case_%s_%d", constante, *nodeIndex);
+			char* nodeName = malloc(sizeof(char) * (255));
+			sprintf(nodeName, "node_case_%d_%d", constante, *nodeIndex);
 			*nodeIndex = *nodeIndex + 1;
 
 			CallTree node = createCallTree(nodeName);
 
 			char codeLien[255] = "";
-			sprintf(codeLien, "%s -> %s\n", nodeName, constante);
+			sprintf(codeLien, "%s -> %d\n", nodeName, constante);
 
-			char* code = (char*) malloc(sizeof(char) * (strlen(constante) + strlen(instruction.code) + strlen(codeLien) + strlen(nodeName) + 60));
+			char* code = (char*) malloc(sizeof(char) * (strlen(instruction.code) + strlen(codeLien) + strlen(nodeName) + 255));
 			sprintf(code, "\n%s [shape=ellipse label=\"CASE\"];\n", nodeName);
 
-			strcat(code, constante);
 			strcat(code, codeLien);
 			strcat(code, instruction.code);
 
