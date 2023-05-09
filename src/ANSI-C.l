@@ -1,6 +1,10 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
+#include <string.h>
+#include <stdlib.h>
+#include "hashTable/HashTable.h"
+
 int yylex();
 int column = 1;
 int countColumns(char *str);
@@ -22,8 +26,12 @@ IS                      (u|U|l|L)*
 "("                     { column += 1; return *yytext; }
 ")"                     { column += 1; return *yytext; }
 
+"["                     { column += 1; return *yytext; }
+"]"                     { column += 1; return *yytext; }
 
-[\[{}:;=,\]]           { column += 1; return *yytext; }
+"{"                     { createScope(); column += 1; return *yytext; }    
+"}"                     { deleteScope(); column += 1; return *yytext; }
+[:;=,]                { column += 1; return *yytext; }
 
 "int"                   { column += 3; return INT; }
 "void"                  { column += 4; return VOID; }

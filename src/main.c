@@ -17,6 +17,7 @@ HashTable functionHashTable;
 int *nodeIndex;
 
 // ----- lex/yacc -----
+extern FILE *yyin;
 int yyparse();
 void yyerror(char const *s);
 
@@ -28,7 +29,7 @@ void extractVarIndex(char *str, int *index, char **src);
 void printList(CallTree **list);
 
 
-int main(void) {
+int main(int argc, char **argv) {
     nodeIndex = malloc(sizeof(int));
     *nodeIndex = 1;
 
@@ -45,42 +46,16 @@ int main(void) {
     hashTableList->currentScope = varHashTable;
     hashTableList->size = 1;
 
-    CallTree treeValue = createCallTree("programme");
-    addCode(&treeValue, "");
+    // if (argc > 1) {
+    //     FILE *file = fopen(argv[1], "r");
 
-    tree = &treeValue;
+    //     if (!file) {
+    //         printf("Error: file not found\n");
+    //         return 1;
+    //     }
 
-    declarationTree = (CallTree **) calloc(1, sizeof(CallTree *));
-    functionTree = (CallTree **) calloc(1, sizeof(CallTree *));
-
-    // --------- Test Hash Table ---------
-    //    createVar(varHashTable, "a", "int");
-    //    updateVar(varHashTable, "a", 10);
-    //
-    //    createList(varHashTable, "testList", 10);
-    //    updateListVar(varHashTable, "testList", 1, 5);
-    //
-    //    unsigned long index = getIndex(varHashTable, "testList");
-    //
-    //    Ht_item* item = varHashTable->items[index];
-    //    print_item(item);
-
-    //    char str[255] = "";
-    //    int *index = (int *) malloc(sizeof(int));
-    //    char x[255] = "a,-1";
-    //    extractVarIndex(str, index, x);
-
-    // --------- Test Call Tree ---------
-    //    CallTree *child = (CallTree *) malloc(sizeof(CallTree));
-    //    createCallTree(child, "child1");
-    //    addCode(child, "main");
-    //    addValue(child, 0);
-    //
-    //    CallTree *parent = (CallTree *) malloc(sizeof(CallTree));
-    //    createCallTree(parent, "Parent");
-    //
-    //    addParent(child, parent);
-    //    printTree(child);
+    //     yyin = file;
+    // }
 
     processParsing();
 

@@ -94,7 +94,7 @@ int initList(char *key, int *sizes) {
 // Adds a new scope to the HashTableList.
 void createScope() {
     HashTable *table = (HashTable *) malloc(sizeof(HashTable));
-    *table = create_table(100);
+    *table = create_table(50000);
     table->prev = hashTableList->currentScope;
     hashTableList->currentScope = table;
     hashTableList->size++;
@@ -203,6 +203,7 @@ int tableValue(char *str, int index) {
 
 // Returns the index of a variable in the HashTable.
 unsigned long getIndex(HashTable *table, char *key) {
+    if (table == NULL) return -1;
     unsigned long index = hash_function(key);
     while (table->items[index] != NULL && strcmp(table->items[index]->key, key) != 0) {
         index++;
@@ -216,7 +217,7 @@ unsigned long getIndex(HashTable *table, char *key) {
 // --------- Free Functions ---------
 // Frees a variable.
 void free_var(Variable *var) {
-    free(var->value);
+    if (var->value != NULL) free(var->value);
     free(var->size);
     free(var->type);
     free(var);
@@ -226,7 +227,7 @@ void free_var(Variable *var) {
 void free_item(Ht_item *item) {
     // Frees an item.
     free(item->key);
-    free_var(item->var);
+    if (item->var != NULL) free_var(item->var);
     free(item);
 }
 
@@ -262,7 +263,7 @@ HashTable *findScope(char *str) {
 // Deletes the current scope.
 void deleteScope() {
     if (hashTableList->currentScope->prev != NULL) {
-        free_table(hashTableList->currentScope);
+        // free_table(hashTableList->currentScope);
         hashTableList->currentScope = hashTableList->currentScope->prev;
     }
 }

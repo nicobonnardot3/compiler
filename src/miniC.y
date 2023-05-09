@@ -9,10 +9,7 @@
 #include "hashTable/HashTable.h"
 
 // ----- Vars -----
-extern struct CallTree* tree;
-extern struct CallTree** functionTree;
-
-extern int* *nodeIndex;
+extern int* nodeIndex;
 extern HashTable* varHashTable;
 
 // ----- lex/yacc -----
@@ -21,11 +18,10 @@ extern int yylex();
 
 // ----- Utils -----
 extern char* removeUnwantedChar(char* str);
-extern char * extractVarName(char* str);
+extern char* extractVarName(char* str);
 extern void extractTableVar(char* str, char* input);
 extern void extractVarIndex(char* str, int* index, char** src);
 extern int parseOperation(int a, int b, char* op);
-
 %}
 
 %union {
@@ -67,16 +63,11 @@ extern int parseOperation(int a, int b, char* op);
 %define parse.error verbose
 
 %%
-programme :
+programme:
 	liste_declarations liste_fonctions
-	{ 
-		char* code = (char*) malloc(sizeof(char) * 1000);
-		int i = 0;
-		while ($2[i] != NULL) {
-			code = (char*) realloc(code, sizeof(char) * (strlen(code) + strlen($2[i]->code) + 10));
-			sprintf(code, "%s%s", code, $2[i]->code);
-			i++;
-		}
+	{
+		CallTree** list = $1;
+		CallTree** functionTree = $2;
 
 		FILE *fptr;
 		fptr = fopen("output.dot", "w+");
@@ -85,8 +76,20 @@ programme :
 			exit(1);
 		}
 
-		fprintf(fptr, "digraph G {\n");
-		fprintf(fptr, "%s\n", code);
+		fprintf(fptr, "digraph Programme {\n");
+		
+		// for (int i = 0; i < size_list; i++) {
+		// 	CallTree* node = list[i];
+		// 	fprintf(fptr, "\t%s\n", node->name, node->name);
+		// }
+
+		int i = 0;
+		while (functionTree[i] != NULL) {
+			CallTree* node = functionTree[i];
+			fprintf(fptr, "%s\n", node->code);
+			i++;
+		}
+
 		fprintf(fptr, "}");
 		fclose(fptr);
 		return 0;
@@ -100,14 +103,14 @@ liste_declarations :
 					if (list == NULL) {
 						list = $2;
 					} else {
-						int size = 1;
+						int size = 0;
 						while (list[size] != NULL) size++;
 
-						int size2 = 1;
+						int size2 = 0;
 						while ($2[size2] != NULL) size2++;
 
-						list = (CallTree**) realloc(list, (size + size2) * sizeof(CallTree*));
-						for (int i = 0; i < size2; i++) {
+						list = (CallTree**) realloc(list, (size + size2 + 2) * sizeof(CallTree*));
+						for (int i = 0; i < size2 + 2; i++) {
 							CallTree* node = $2[i];
 							list[size + i - 1] = node;
 						}
@@ -117,25 +120,25 @@ liste_declarations :
 		|		{ $$ = NULL; }
 ;
 liste_fonctions :
-			liste_fonctions fonction		
+			liste_fonctions fonction
 			{
-				CallTree node = $2;
-				addParent(&node, tree);
-				int size = 1;
+				CallTree** functionTree = $1;
+				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
+				*node = $2;
+				int size = 0;
 				while (functionTree[size] != NULL) size++;
 
-				functionTree = (CallTree**) realloc(functionTree, (size + 1) * sizeof(CallTree*));
-				functionTree[size] = &node;
+				functionTree = (CallTree**) realloc(functionTree, (size + 2) * sizeof(CallTree*));
+				functionTree[size] = node;
 				$$ = functionTree;
 			}
-		|  	fonction						
+		|  	fonction
 			{
-				CallTree node = $1;
-				addParent(&node, tree);
+				CallTree** functionTree = (CallTree**) calloc(1, sizeof(CallTree*));
+				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
+				*node = $1;
 
-				char* code = (char*) malloc(sizeof(char) * (strlen(node.name) + 30));
-
-				functionTree[0] = &node;
+				functionTree[0] = node;
 				$$ = functionTree;
 			}
 ;
@@ -143,13 +146,6 @@ declaration :
 	type liste_declarateurs ';'
 			{
 				CallTree** list = $2;
-				
-				int size = 1;
-				while (list[size] != NULL) size++;
-
-				// for (int i = 0; i < size; i++) {
-				// 	list[i]->type = $1;
-				// }
 				$$ = list;
 			}
 ;
@@ -157,10 +153,10 @@ liste_declarateurs:
 			liste_declarateurs ',' declarateur
 					{
 						CallTree** list = $1;
-						int size = 1;
+						int size = 0;
 						while (list[size] != NULL) size++;
 
-						list = (CallTree**) realloc(list, (size + 1) * sizeof(CallTree*));
+						list = (CallTree**) realloc(list, (size + 2) * sizeof(CallTree*));
 						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 						*node = $3;
 						list[size] = node;
@@ -196,7 +192,7 @@ declarateur :
 			}
 	|	declarateur_list liste_indexes
 			{
-				int sizes = $2;
+				int *sizes = $2;
 				initList($1, sizes);
 
 				char* nodeName = (char*) malloc(sizeof(char) * (strlen($1) + 30));
@@ -210,7 +206,7 @@ declarateur :
 
 				addIndex(&node, $2);
 				addCode(&node, code);
-				
+
 				$$ = node;
 			}
 ;
@@ -228,14 +224,14 @@ liste_indexes:
 				int size = 1;
 				while (indexes[size] != NULL) size++;
 
-				indexes = (int *) realloc(indexes, (size + 1) * sizeof(int));
+				indexes = (int *) realloc(indexes, (size + 2) * sizeof(int));
 				indexes[size] = $3;
 				$$ = indexes;
 			}
-	|	CONSTANTE
+	|	'[' CONSTANTE ']'
 			{
 				int *indexes = (int *) calloc(1, sizeof(int));
-				indexes[0] = $1;
+				indexes[0] = $2;
 				$$ = indexes;
 			}
 ;
@@ -289,7 +285,7 @@ fonction :
 				// }
 
 				// i = 0;
-				while (liste_instructions[i] != NULL) {
+				while (liste_instructions != NULL && liste_instructions[i] != NULL) {
 					addParent(liste_instructions[i], &node);
 
 					char* codeLien = (char*) malloc(sizeof(char) * (strlen(liste_instructions[i]->name) + strlen(blocName) + 255));
@@ -574,11 +570,15 @@ selection :
 			char codeLien[255] = "";
 			sprintf(codeLien, "%s -> %d\n", nodeName, constante);
 
-			char* code = (char*) malloc(sizeof(char) * (strlen(instruction.code) + strlen(codeLien) + strlen(nodeName) + 255));
+			char codeLien2[255] = "";
+			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
+
+			char* code = (char*) malloc(sizeof(char) * (strlen(instruction.code) + strlen(codeLien) + strlen(codeLien2) + strlen(nodeName) + 255));
 			sprintf(code, "\n%s [shape=ellipse label=\"CASE\"];\n", nodeName);
 
 			strcat(code, codeLien);
 			strcat(code, instruction.code);
+			strcat(code, codeLien2);
 
 			addCode(&node, code);
 
@@ -713,11 +713,10 @@ bloc :
 
 			CallTree node = createCallTree(nodeName);
 
-			CallTree** list = $2;
-			int size = sizeof(list) / sizeof(CallTree*);
-
-			list = $3;
-			size = sizeof(list) / sizeof(CallTree*);
+			CallTree** list = $3;
+			int size = 0;
+			while (list[size] != NULL) size++;
+			
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(nodeName) + 255));
 			sprintf(code, "\n%s [shape=ellipse label=\"BLOC\"];\n", nodeName);
@@ -794,8 +793,10 @@ variable :
 			}
 	|	variable liste_indexes
 		{
-			char *str = (char*) malloc(sizeof(char) * strlen($1.name) + 10);
-			strcpy(str, $1.name);
+			CallTree var = $1;
+
+			char *str = (char*) malloc(sizeof(char) * strlen(var.var_name) + 10);
+			strcpy(str, var.var_name);
 
 			char *nodeName = (char*) malloc(sizeof(char) * strlen(str) + 20);
 			sprintf(nodeName, "node_var_%s_%d", str, *nodeIndex);
@@ -804,7 +805,30 @@ variable :
 			CallTree node = createCallTree(nodeName);
 			node.var_name = str;
 
-			addCode(&node, "");
+			addParent(&var, &node);
+
+			char* codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(var.name) + 40));
+			sprintf(codeLien, "%s%s -> %s;\n", var.code, nodeName, var.name);
+
+			printf("codeLien : %s\n", codeLien);
+
+			int* list = $2;
+
+			int size = 0;
+			while (list[size] != NULL) size++;
+
+			for (int i = 0; i < size; i++) {
+				char* index = (char*)malloc(sizeof(char) * (strlen(nodeName) + 255));
+				sprintf(index, "%s -> %d;\n", nodeName, list[i]);
+				codeLien = realloc(codeLien, sizeof(char) * (strlen(codeLien) + strlen(nodeName) + 60));
+				strcat(codeLien, index);
+			}
+
+			char* code = malloc(sizeof(char) * (strlen(nodeName) + strlen(codeLien) + 60));
+			sprintf(code, "\n%s [shape=ellipse label=\"TAB\"];\n", nodeName);
+			strcat(code, codeLien);
+
+			addCode(&node, code);
 			addIndex(&node, index);
 
 			int value = tableValue(str, $2[0]);
@@ -897,7 +921,7 @@ expression  :	// var et const = node, binop = sous arbre
 			CallTree node = createCallTree(nodeName);
 
 			char *code = (char*) malloc(sizeof(char) * (strlen(nodeName) + 40));
-			sprintf(code, "\n%s [shape=ellipse label=\"%d\"];", nodeName, $1);
+			sprintf(code, "\n%s [shape=ellipse label=\"%d\"];\n", nodeName, $1);
 			addCode(&node, code);
 			addValue(&node, $1);
 			
@@ -918,8 +942,28 @@ expression  :	// var et const = node, binop = sous arbre
 			sprintf(nodeName, "node_appel_%s_%d", $1, *nodeIndex);
 			*nodeIndex = *nodeIndex + 1;
 
+			CallTree** list = $3;
+			int size = sizeof(list) / sizeof(CallTree*);
+
 			CallTree node = createCallTree(nodeName);
-			addCode(&node, "");
+
+			char* code = (char*) malloc(sizeof(char) * (strlen($1) + strlen(nodeName) + 60));
+			sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, $1);
+
+			for (int i = 0; i < size; i++) {
+				addParent(list[i], &node);
+
+				char* codeLien = malloc(sizeof(char) * (strlen($1) + strlen(list[i]->name) + 40));
+				sprintf(codeLien, "%s -> %s\n", nodeName, list[i]->name);
+
+				char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(codeLien) + 60));
+				sprintf(tmp, "%s%s%s", code, list[i]->code, codeLien);
+
+				code = tmp;
+			}
+
+			
+			addCode(&node, code);
 			$$ = node;
 		}
 ;
