@@ -2,8 +2,6 @@ CFLAGS=-D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasyn
 DEBUG_FLAGS=-g -fsanitize=address
 DEBUG_ENV=LSAN_OPTION=verbosity=1:log_threads=1
 
-all: debug
-
 parser.out: clean lex.yy.c y.tab.c
 	gcc $(CFLAGS) -o parser.out main.c callTree/CallTree.c hashTable/HashTable.c y.tab.c lex.yy.c -ll
 

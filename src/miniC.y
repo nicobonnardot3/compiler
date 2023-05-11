@@ -82,7 +82,7 @@ programme:
 		int i = 0;
 		while (functionTree[i] != NULL) {
 			CallTree* node = functionTree[i];
-			printf("%s\n", node->code);
+			// printf("%s\n", node->code);
 			fprintf(fptr, "%s\n", node->code);
 			free(node);
 			i++;
@@ -223,7 +223,6 @@ declarateur :
 				addCode(&node, code);
 
 				free(nodeName);
-				free($1);
 				free(code);
 
 
@@ -278,13 +277,10 @@ fonction :
 				CallTree** liste_instructions = $8;
 
 				CallTree node = createCallTree(nodeId);
-
 				
 				char* blocName = (char*) malloc(sizeof(char) * 40);
 				sprintf(blocName, "node_bloc_%d", *nodeIndex);
-
-				CallTree nodeBloc = createCallTree(blocName);
-
+				
 				char* codeBloc = (char*) malloc(sizeof(char) * (2 * strlen(blocName) + strlen(nodeId) + 60));
 				sprintf(codeBloc, "%s [shape=ellipse label=\"BLOC\"];\n%s -> %s\n", blocName,  nodeId, blocName);
 
@@ -294,19 +290,6 @@ fonction :
 				node.type = type;
 
 				int i = 0;
-				// while (liste_declarations[i] != NULL) {
-				// 	addParent(liste_declarations[i], &node);
-
-         		// 	char* codeLien = (char*) malloc(sizeof(char) * 255);
-				// 	sprintf(codeLien, "\n%s -> %s\n", nodeId, liste_declarations[i]->name);
-
-				// 	nodeCode = (char*) realloc(nodeCode, sizeof(char) * (strlen(nodeCode) + strlen(liste_declarations[i]->code) + strlen(codeLien) + 255));
-				// 	strcat(nodeCode, liste_declarations[i]->code);
-				// 	strcat(nodeCode, codeLien);
-				// 	i++;
-				// }
-
-				// i = 0;
 				while (liste_instructions != NULL && liste_instructions[i] != NULL) {
 					addParent(liste_instructions[i], &node);
 
@@ -320,6 +303,13 @@ fonction :
 				}
 
 				addCode(&node, nodeCode);
+
+				free(nodeId);
+				free(nodeCode);
+				free(blocName);
+				free(codeBloc);
+				free(filteredName);
+				free(nodeName);
 
 				$$ = node;
 			}
@@ -344,6 +334,9 @@ fonction :
 			node.type = type;
 
 			addCode(&node, nodeCode);
+
+			free(nodeId);
+			free(nodeCode);
 
 
 			$$ = node;
@@ -419,14 +412,14 @@ iteration :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
-			char codeLien2[255] = "";
-			char codeLien3[255] = "";
-			char codeLien4[255] = "";
+			char *codeLien = (char*) malloc(sizeof(char) * (strlen(affectation1.name) + strlen(nodeName) + 255));
+			char *codeLien2 = (char*) malloc(sizeof(char) * (strlen(condition.name) + strlen(nodeName) + 255));
+			char *codeLien3 = (char*) malloc(sizeof(char) * (strlen(affectation2.name) + strlen(nodeName) + 255));
+			char *codeLien4 = (char*) malloc(sizeof(char) * (strlen(instruction.name) + strlen(nodeName) + 255));
 
 			sprintf(codeLien, "%s -> %s\n", nodeName, affectation1.name);
-			sprintf(codeLien3, "%s -> %s\n", nodeName, condition.name);
-			sprintf(codeLien2, "%s -> %s\n", nodeName, affectation2.name);
+			sprintf(codeLien2, "%s -> %s\n", nodeName, condition.name);
+			sprintf(codeLien3, "%s -> %s\n", nodeName, affectation2.name);
 			sprintf(codeLien4, "%s -> %s\n", nodeName, instruction.name);
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(affectation1.code) + strlen(condition.code) + strlen(affectation2.code) + strlen(instruction.code) + strlen(codeLien) + strlen(codeLien2) + strlen(codeLien3) + strlen(codeLien4) + strlen(nodeName) + 255));
@@ -442,6 +435,13 @@ iteration :
 			strcat(code, codeLien4);
 		
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
+			free(codeLien3);
+			free(codeLien4);
 
 			addParent(&affectation1, &node);
 			addParent(&condition, &node);
@@ -461,8 +461,8 @@ iteration :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
-			char codeLien2[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(condition.name) + 10));
+			char *codeLien2 = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 10));
 			sprintf(codeLien, "%s -> %s\n", nodeName, condition.name);
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 
@@ -476,6 +476,12 @@ iteration :
 			strcat(code, codeLien2);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
+
 
 			addParent(&condition, &node);
 			addParent(&instruction, &node);
@@ -495,8 +501,8 @@ selection :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
-			char codeLien2[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(condition.name) + 10));
+			char *codeLien2 = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 10));
 			sprintf(codeLien, "%s -> %s\n", nodeName, condition.name);
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 		
@@ -509,6 +515,11 @@ selection :
 			strcat(code, codeLien2);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
 
 			addParent(&condition, &node);
 			addParent(&instruction, &node);
@@ -528,9 +539,9 @@ selection :
 			CallTree node = createCallTree(nodeName);
 			
 
-			char codeLien[255] = "";
-			char codeLien2[255] = "";
-			char codeLien3[255] = "";
+			char *codeLien = (char*) malloc(sizeof(char) * strlen(nodeName) + strlen(condition.name) + 50);
+			char *codeLien2 = (char*) malloc(sizeof(char) * strlen(nodeName) + strlen(instruction1.name) + 50);
+			char *codeLien3 = (char*) malloc(sizeof(char) * strlen(nodeName) + strlen(instruction2.name) + 50);
 
 			sprintf(codeLien, "%s -> %s\n", nodeName, condition.name);
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction1.name);
@@ -547,6 +558,13 @@ selection :
 			strcat(code, codeLien3);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
+			free(codeLien3);
+
 
 			addParent(&condition, &node);
 			addParent(&instruction1, &node);
@@ -565,8 +583,8 @@ selection :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
-			char codeLien2[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(expression.name) + 10));
+			char *codeLien2 = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 10));
 			sprintf(codeLien, "%s -> %s\n", nodeName, expression.name);
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 
@@ -579,6 +597,11 @@ selection :
 			strcat(code, codeLien2);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
 
 			addParent(&expression, &node);
 			addParent(&instruction, &node);
@@ -596,10 +619,10 @@ selection :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 255));
 			sprintf(codeLien, "%s -> %d\n", nodeName, constante);
 
-			char codeLien2[255] = "";
+			char *codeLien2 = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 255));
 			sprintf(codeLien2, "%s -> %s\n", nodeName, instruction.name);
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(instruction.code) + strlen(codeLien) + strlen(codeLien2) + strlen(nodeName) + 255));
@@ -610,6 +633,12 @@ selection :
 			strcat(code, codeLien2);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+			free(codeLien2);
+
 
 			addParent(&constante, &node);
 			addParent(&instruction, &node);
@@ -626,7 +655,7 @@ selection :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(instruction.name) + 10));
 			sprintf(codeLien, "%s -> %s\n", nodeName, instruction.name);
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(instruction.code) + strlen(codeLien) + strlen(nodeName) + 60));
@@ -635,6 +664,11 @@ selection :
 			strcat(code, codeLien);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+
 
 			addParent(&instruction, &node);
 			
@@ -654,6 +688,10 @@ saut :
 			sprintf(code, "\n%s [shape=rectangle label=\"BREAK\"];\n", nodeName);
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+
 			$$ = node;
 		}
 	 |	RETURN ';'
@@ -669,6 +707,10 @@ saut :
 
 			addCode(&node, code);
 
+			free(code);
+			free(nodeName);
+
+
 			$$ = node;
 		}
 	 |	RETURN expression ';'
@@ -681,7 +723,7 @@ saut :
 
 			CallTree node = createCallTree(nodeName);
 
-			char codeLien[255] = "";
+			char *codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(expression.name) + 40));
 			sprintf(codeLien, "%s -> %s\n", nodeName, expression.name);
 
 			char* code = (char*) malloc(sizeof(char) * (strlen(expression.code) + strlen(codeLien) + strlen(nodeName) + 60));
@@ -690,6 +732,11 @@ saut :
 		
 			strcat(code, codeLien);
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+			free(codeLien);
+
 
 			addParent(&expression, &node);
 			
@@ -743,6 +790,12 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 
 			addCode(&node, code);
 
+			free(code);
+			free(nodeName);
+			free(code2);
+			free(code3);
+
+
 			$$ = node;
 		}
 ;
@@ -769,10 +822,14 @@ bloc :
 
 				char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(node.name) + strlen(list[i]->name) + 60));
 				sprintf(tmp, "%s%s%s -> %s\n", code, list[i]->code, node.name, list[i]->name);
+				free(code);
 				code = tmp;
 			}
 
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
 
 			$$ = node;
 		}
@@ -804,10 +861,17 @@ appel :
 			char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(codeLien) + 60));
 			sprintf(tmp, "%s%s%s", code, list[i]->code, codeLien);
 
+			
+			free(code);
+			free(codeLien);
 			code = tmp;
 		}
 
 		addCode(&node, code);
+
+		free(code);
+		free(nodeName);
+
 		
 		$$ = node;
 	}
@@ -822,7 +886,7 @@ variable :
 				*nodeIndex = *nodeIndex + 1;
 
 				CallTree node = createCallTree(nodeName);
-				node.var_name = str;
+				node.var_name = strdup(str);
 				node.type = "int";
 
 				int value = symbolVal(str);
@@ -831,6 +895,10 @@ variable :
 				char* code = malloc(sizeof(char) * (strlen(nodeName) + strlen(str) + 60));
 				sprintf(code, "\n%s [shape=ellipse label=\"%s\"];\n", nodeName, str);
 				addCode(&node, code);
+
+				free(code);
+				free(nodeName);
+				free(str);
 
 				$$ = node;
 			}
@@ -846,7 +914,7 @@ variable :
 			*nodeIndex = *nodeIndex + 1;
 
 			CallTree node = createCallTree(nodeName);
-			node.var_name = str;
+			node.var_name = strdup(str);
 			node.type = "int List";
 			addParent(&var, &node);
       
@@ -873,10 +941,19 @@ variable :
 			strcat(code, codeLien);
 
 			addCode(&node, code);
+
+			free(code);
+			free(codeLien);
+			free(nodeName);
+			free(str);
+
 			addIndex(&node, indexes);
+
 
 			int value = tableValue(str, indexes);
 			addValue(&node, value);
+
+			free(indexes);
 
 			$$ = node;
 		}
@@ -925,17 +1002,18 @@ expression  :	// var et const = node, binop = sous arbre
 			 else if (strcmp($2, "<<") == 0)  value = child1.value << child2.value;
 			 else if (strcmp($2, "&") == 0)  value = child1.value & child2.value;
 			 else if (strcmp($2, "|") == 0)  value = child1.value | child2.value;
-			 else {
-				char* error = (char*) malloc(sizeof(char) * 40);
-				sprintf(error, "Erreur : opérateur %s non reconnu\n", $2);
-				yyerror(error);
-				exit(1);
-			 }
-				
+
 			addValue(&node, value);
 
 			addParent(&node, &child1);
 			addParent(&node, &child2);
+
+			free(code);
+			free(tmp);
+			free(tmp2);
+			free(nodeName);
+
+
 			$$ = node; 
 		}
 	|	MOINS expression
@@ -961,6 +1039,11 @@ expression  :	// var et const = node, binop = sous arbre
 			addValue(&node, value);
 
 			addParent(&node, &child);
+
+			free(code);
+			free(tmp);
+			free(nodeName);
+
 			$$ = node;
 		}
 	|	CONSTANTE
@@ -974,6 +1057,10 @@ expression  :	// var et const = node, binop = sous arbre
 			sprintf(code, "\n%s [shape=ellipse label=\"%d\"];\n", nodeName, $1);
 			addCode(&node, code);
 			addValue(&node, $1);
+
+			free(code);
+			free(nodeName);
+			
 			
 			$$ = node;
 		}
@@ -985,6 +1072,7 @@ expression  :	// var et const = node, binop = sous arbre
 				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
 				sprintf(error, "Erreur : la variable %s n'a pas de valeur!", node.var_name);
 				yyerror(error);
+				free(error);
 				exit(1);
 			}
 			
@@ -992,6 +1080,7 @@ expression  :	// var et const = node, binop = sous arbre
 				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
 				sprintf(error, "Erreur : le tableaux %s n'a pas de valeur pour les indexes donnee!", node.var_name);
 				yyerror(error);
+				free(error);
 				exit(1);
 			}
 
@@ -1023,12 +1112,18 @@ expression  :	// var et const = node, binop = sous arbre
 
 				char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(codeLien) + 60));
 				sprintf(tmp, "%s%s%s", code, list[i]->code, codeLien);
+				
+				free(code);
+				free(codeLien);
 
 				code = tmp;
 			}
 
-			
 			addCode(&node, code);
+
+			free(code);
+			free(nodeName);
+
 			$$ = node;
 		}
 ;
@@ -1077,6 +1172,11 @@ condition :
 
 			addCode(&node, code);
 
+			free(code);
+			free(tmp);
+			free(nodeName);
+
+
 			addParent(&node, &condition_1);
 			$$ = node;
 		 }
@@ -1106,6 +1206,12 @@ condition :
 			strcat(code, tmp2);
 
 			addCode(&node, code);
+
+			free(code);
+			free(tmp);
+			free(tmp2);
+			free(nodeName);
+
 
 			addParent(&node, &condition_1);
 			addParent(&node, &condition_2);
@@ -1139,6 +1245,12 @@ condition :
 			strcat(code, condition_2.code);
 			strcat(code, tmp2);
 			addCode(&node, code);
+
+			free(code);
+			free(tmp);
+			free(tmp2);
+			free(nodeName);
+
 
 			addParent(&node, &condition_1);
 			addParent(&node, &condition_2);
