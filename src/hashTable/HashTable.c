@@ -391,8 +391,6 @@ int calculateIndex(int *sizes, int *indexes) {
 
     if (sizeof(sizes) != sizeof(indexes)) return -1;
 
-    printf("sizes: %d, indexes: %d\n", sizeof(sizes) / sizeof(int), sizeof(indexes) / sizeof(int));
-
     int size = 0;
     while (sizes[size] != -1) size++;
     if (size == 1) return indexes[0];
