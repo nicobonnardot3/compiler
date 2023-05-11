@@ -63,20 +63,15 @@ void addCode(CallTree *callTree, char *code) {
     callTree->code = newCode;
 }
 
-void addIndex(CallTree *callTree, int index) {
+void addIndex(CallTree *callTree, int *indexes) {
     if (callTree == NULL) {
         printf("Call Tree is NULL\n");
         return;
     }
 
-    if (callTree->indexes == NULL) {
-        callTree->indexes = malloc(sizeof(int));
-        callTree->indexes[0] = index;
-    } else {
-        int *newIndexes = realloc(callTree->indexes, sizeof(int) * (sizeof(callTree->indexes) + 1));
-        newIndexes[sizeof(callTree->indexes)] = index;
-        callTree->indexes = newIndexes;
-    }
+    int size = sizeof(indexes) / sizeof(sizeof(int));
+    callTree->indexes = (int *) calloc(size, sizeof(int));
+    memcpy(callTree->indexes, indexes, (size) * sizeof(int));
 }
 
 // ------------------ aux ------------------

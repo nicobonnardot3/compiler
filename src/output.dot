@@ -1,22 +1,27 @@
 digraph Programme {
 
-node_main_5 [label="main, int" shape=invtrapezium color=blue];
-node_bloc_6 [shape=ellipse label="BLOC"];
-node_main_5 -> node_bloc_6
+node_main_8 [label="main, int" shape=invtrapezium color=blue];
+node_bloc_9 [shape=ellipse label="BLOC"];
+node_main_8 -> node_bloc_9
 
-node_affect_node_var_a_3_node_20_4_4 [label=":=" shape=ellipse];
+node_affect_node_var_a_4_node_0_5_5 [label=":=" shape=ellipse];
 
-node_var_a_3 [shape=ellipse label="TAB"];
+node_var_a_4 [shape=ellipse label="a"];
+node_affect_node_var_a_4_node_0_5_5 -> node_var_a_4
 
-node_var_a_2 [shape=ellipse label="a"];
-node_var_a_3 -> node_var_a_2;
-node_var_a_3 -> 10;
-node_var_a_3 -> 20;
-node_affect_node_var_a_3_node_20_4_4 -> node_var_a_3
+node_0_5 [shape=ellipse label="0"];
+node_affect_node_var_a_4_node_0_5_5 -> node_0_5
 
-node_20_4 [shape=ellipse label="20"];
-node_affect_node_var_a_3_node_20_4_4 -> node_20_4
+node_bloc_9 -> node_affect_node_var_a_4_node_0_5_5
 
-node_bloc_6 -> node_affect_node_var_a_3_node_20_4_4
+node_affect_node_var_b_6_node_1_7_7 [label=":=" shape=ellipse];
+
+node_var_b_6 [shape=ellipse label="b"];
+node_affect_node_var_b_6_node_1_7_7 -> node_var_b_6
+
+node_1_7 [shape=ellipse label="1"];
+node_affect_node_var_b_6_node_1_7_7 -> node_1_7
+
+node_bloc_9 -> node_affect_node_var_b_6_node_1_7_7
 
 }

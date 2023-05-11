@@ -15,6 +15,7 @@ HashTable varHashTable;
 HashTable functionHashTable;
 
 int *nodeIndex;
+char *outputFile;
 
 // ----- lex/yacc -----
 extern FILE *yyin;
@@ -31,6 +32,7 @@ void printList(CallTree **list);
 
 int main(int argc, char **argv) {
     nodeIndex = malloc(sizeof(int));
+
     *nodeIndex = 1;
 
     HashTable *varHashTable = (HashTable *) malloc(sizeof(HashTable));
@@ -46,16 +48,24 @@ int main(int argc, char **argv) {
     hashTableList->currentScope = varHashTable;
     hashTableList->size = 1;
 
-    // if (argc > 1) {
-    //     FILE *file = fopen(argv[1], "r");
+    if (argc > 1) {
+        FILE *file = fopen(argv[1], "r");
 
-    //     if (!file) {
-    //         printf("Error: file not found\n");
-    //         return 1;
-    //     }
+        if (!file) {
+            printf("Error: file not found\n");
+            return 1;
+        }
 
-    //     yyin = file;
-    // }
+        yyin = file;
+    }
+
+    if (argc > 2) {
+        outputFile = (char *) malloc(sizeof(char) * (strlen(argv[2]) + 1));
+        outputFile = argv[2];
+    } else {
+        outputFile = (char *) malloc(sizeof(char) * (strlen("output.dot") + 1));
+        outputFile = "output.dot";
+    }
 
     processParsing();
 
@@ -76,9 +86,11 @@ char *extractVarName(char *str) {
         i++;
     }
 
-    char *newStr = malloc(sizeof(char) * (i + 1));
+
+    char *newStr = (char *) malloc(sizeof(char) * (i + 2));
     strncpy(newStr, str, i);
 
+    newStr[i] = '\0';
     return newStr;
 }
 

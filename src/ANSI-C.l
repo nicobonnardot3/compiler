@@ -86,9 +86,9 @@ IS                      (u|U|l|L)*
 
 
 
-"\n"                    {  column = 1; }
+"\n"                    {  column = 0; }
 
-"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { yylineno += countLines(yytext); column = countColumns(yytext); }
+"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { column = countColumns(yytext); }
 "//".*                  {yylineno++; column = 0;}
 
 .                       {
@@ -101,16 +101,6 @@ IS                      (u|U|l|L)*
 
 int yywrap (void) {return 1;}
 
-int countLines(char *str) {
-    int count = 0;
-    char *p = str;
-    while (*p) {
-        if (*p == '\n')
-            count++;
-        p++;
-    }
-    return count;
-}
 
 int countColumns(char *str) {
     int count = 0;

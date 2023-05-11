@@ -11,6 +11,7 @@
 // ----- Vars -----
 extern int* nodeIndex;
 extern HashTable* varHashTable;
+extern char* outputFile;
 
 // ----- lex/yacc -----
 extern void yyerror (char const *s);
@@ -70,23 +71,20 @@ programme:
 		CallTree** functionTree = $2;
 
 		FILE *fptr;
-		fptr = fopen("output.dot", "w+");
+		fptr = fopen(outputFile, "w+");
 		if(fptr == NULL) {
 			printf("Error!");
 			exit(1);
 		}
 
 		fprintf(fptr, "digraph Programme {\n");
-		
-		// for (int i = 0; i < size_list; i++) {
-		// 	CallTree* node = list[i];
-		// 	fprintf(fptr, "\t%s\n", node->name, node->name);
-		// }
 
 		int i = 0;
 		while (functionTree[i] != NULL) {
 			CallTree* node = functionTree[i];
+			printf("%s\n", node->code);
 			fprintf(fptr, "%s\n", node->code);
+			free(node);
 			i++;
 		}
 
@@ -134,7 +132,7 @@ liste_fonctions :
 			}
 		|  	fonction
 			{
-				CallTree** functionTree = (CallTree**) calloc(1, sizeof(CallTree*));
+				CallTree** functionTree = (CallTree**) calloc(2, sizeof(CallTree*));
 				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $1;
 
@@ -164,7 +162,7 @@ liste_declarateurs:
 					}
 			|	declarateur
 					{
-						CallTree** list = (CallTree**) calloc(1, sizeof(CallTree*));
+						CallTree** list = (CallTree**) calloc(2, sizeof(CallTree*));
 						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 						*node = $1;
 						list[0] = node;
@@ -176,6 +174,13 @@ declarateur :
 			{
 				char* str = removeUnwantedChar($1);
 
+				if (inCurrentScope(str) == 1) {
+					char *error = (char*) malloc(sizeof(char) * (strlen(str) + 50));
+					sprintf(error, "Error: variable %s already declared", str);
+					yyerror(error);
+					free(error);
+					exit(1);
+				}
 				char* nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 20));
 				sprintf(nodeName, "node_%s_%d", str, *nodeIndex);
 				*nodeIndex = *nodeIndex + 1;
@@ -186,12 +191,22 @@ declarateur :
 				sprintf(code, "%s [shape=ellipse label=\"%s, int\"];", nodeName, str);
 
 				addCode(&node, code);
+				free(code);
 				initVar(str);
 
 				$$ = node;
 			}
 	|	declarateur_list liste_indexes
 			{
+
+				if (inCurrentScope($1) == 1) {
+					char *error = (char*) malloc(sizeof(char) * (strlen($1) + 50));
+					sprintf(error, "Error: variable %s already declared", $1);
+					yyerror(error);
+					free(error);
+					exit(1);
+				}
+
 				int *sizes = $2;
 				initList($1, sizes);
 
@@ -207,6 +222,11 @@ declarateur :
 				addIndex(&node, $2);
 				addCode(&node, code);
 
+				free(nodeName);
+				free($1);
+				free(code);
+
+
 				$$ = node;
 			}
 ;
@@ -217,25 +237,27 @@ declarateur_list :
 				$$ = str;
 			}
 ;
-liste_indexes: 
+liste_indexes:
 		liste_indexes '[' CONSTANTE ']'
 			{
 				int *indexes = $1;
-				int size = 1;
-				while (indexes[size] != NULL) size++;
+				int size = 0;
+				while (indexes[size] != -1) size++;
 
-				indexes = (int *) realloc(indexes, (size + 2) * sizeof(int));
+				// indexes = (int *) realloc(indexes, (size + 2) * sizeof(int));
 				indexes[size] = $3;
+
 				$$ = indexes;
 			}
 	|	'[' CONSTANTE ']'
 			{
-				int *indexes = (int *) calloc(1, sizeof(int));
+				int *indexes = (int *) calloc(100, sizeof(int));
+				for (int i = 0; i < 100; i++) indexes[i] = -1;
 				indexes[0] = $2;
 				$$ = indexes;
 			}
 ;
-fonction :	
+fonction :
 		type IDENTIFICATEUR '(' liste_params ')' '{' liste_declarations liste_instructions '}' 
 			{ // sous Arbre abstrait, chaque instruction -> fils
 				char* type = $1;
@@ -299,8 +321,6 @@ fonction :
 
 				addCode(&node, nodeCode);
 
-				printf("nodeCode : %s\n", nodeCode);
-
 				$$ = node;
 			}
 	|	EXTERN type IDENTIFICATEUR '(' liste_params ')' ';'
@@ -325,8 +345,6 @@ fonction :
 
 			addCode(&node, nodeCode);
 
-			printf("nodeCode : %s\n", nodeCode);
-
 
 			$$ = node;
 		}
@@ -342,15 +360,23 @@ liste_params :
 ;
 param :
 	INT IDENTIFICATEUR
+		{
+			char* name = $2;
+
+			initVar(name);
+			updateVar(name, 0);
+		}
 ;
 liste_instructions:
 		liste_instructions instruction
 			{
 				CallTree** list = $1;
 				int size = 0;
-				while (list[size] != NULL) size++;
-
-				list = (CallTree**) realloc(list, (size + 2) * sizeof(CallTree *));
+				while (list[size] != NULL) 
+					size++;
+				
+				if (size > 100)
+					list = (CallTree**) realloc(list, (size + 1) * sizeof(CallTree *));
 
 				CallTree *node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $2;
@@ -359,13 +385,16 @@ liste_instructions:
 			}
 	|	instruction
 			{
-				CallTree** list = (CallTree**) calloc(1, sizeof(CallTree*));
+				CallTree** list = (CallTree**) calloc(100, sizeof(CallTree*));
 				CallTree *node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $1;
 				list[0] = node;
 				$$ = list;
 			}
-	|		{ $$ = NULL; }
+	|
+			{ 
+				$$ = NULL; 
+			}
 ;
 instruction :
 		iteration 		{ $$ = $1; }
@@ -672,9 +701,24 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 		{
 			CallTree var = $1;
 			CallTree expr = $3;
-
-			updateVar(var.var_name, expr.value);
-
+      
+			if (findScope(var.var_name) == NULL) {
+				char* error = malloc(sizeof(char) * (strlen(var.var_name) + 60));
+				sprintf(error, "Erreur : la variable %s n'est pas déclarée", var.var_name);
+				yyerror(error);
+				exit(1);
+			}
+			
+			if (expr.var_name != NULL && findScope(expr.var_name) == NULL) {
+				char* error = malloc(sizeof(char) * (strlen(expr.var_name) + 60));
+				sprintf(error, "Erreur : la variable %s n'est pas déclarée", expr.var_name);
+				yyerror(error);
+				exit(1);
+			}
+      
+	  		if (strcmp(var.type, "int") == 0) updateVar(var.var_name, expr.value);
+			else updateListVar(var.var_name, var.indexes, expr.value);
+			
 			char* nodeName = malloc(sizeof(char) * (strlen(var.name) + strlen(expr.name) + 60));
 			sprintf(nodeName, "node_affect_%s_%s_%d", var.name, expr.name, *nodeIndex);
 			*nodeIndex = *nodeIndex + 1;
@@ -698,8 +742,6 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 			addParent(&expr, &node);
 
 			addCode(&node, code);
-
-			// printf("Affectation : %s\n", code);
 
 			$$ = node;
 		}
@@ -750,7 +792,7 @@ appel :
 		CallTree** list = $3;
 		int size = sizeof(list) / sizeof(CallTree*);
 
-		char* code = (char*) malloc(sizeof(char) * (strlen(str) + strlen(nodeName) + 60));
+		char* code = (char*) malloc(sizeof(char) * (strlen(str) + strlen(nodeName) + 255));
 		sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, str);
 
 		for (int i = 0; i < size; i++) {
@@ -774,13 +816,14 @@ variable :
 		IDENTIFICATEUR
 			{
 				char* str = extractVarName($1);
-
+        
 				char* nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50));
 				sprintf(nodeName, "node_var_%s_%d", str, *nodeIndex);
 				*nodeIndex = *nodeIndex + 1;
 
 				CallTree node = createCallTree(nodeName);
 				node.var_name = str;
+				node.type = "int";
 
 				int value = symbolVal(str);
 				addValue(&node, value);
@@ -804,23 +847,24 @@ variable :
 
 			CallTree node = createCallTree(nodeName);
 			node.var_name = str;
-
+			node.type = "int List";
 			addParent(&var, &node);
+      
+      		int *indexes = $2;
+     		int size = 0;
+			while (indexes[size] != -1) size++;
 
-			char* codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(var.name) + 40));
+			char* codeLien = malloc(sizeof(char) * (strlen(nodeName) + strlen(var.name) + 255));
 			sprintf(codeLien, "%s%s -> %s;\n", var.code, nodeName, var.name);
 
-			printf("codeLien : %s\n", codeLien);
-
-			int* list = $2;
-
-			int size = 0;
-			while (list[size] != NULL) size++;
-
 			for (int i = 0; i < size; i++) {
-				char* index = (char*)malloc(sizeof(char) * (strlen(nodeName) + 255));
-				sprintf(index, "%s -> %d;\n", nodeName, list[i]);
-				codeLien = realloc(codeLien, sizeof(char) * (strlen(codeLien) + strlen(nodeName) + 60));
+				char* indexName = (char*)malloc(sizeof(char) * 255);
+				sprintf(indexName, "node_index_%d_%d", indexes[i], *nodeIndex);
+
+				char* index = (char*) malloc(sizeof(char) * (strlen(indexName) + strlen(nodeName) + 255));
+				*nodeIndex = *nodeIndex + 1;
+				sprintf(index, "%s [shape=ellipse label=\"%d\"];\n%s -> %s;\n", indexName, indexes[i], nodeName, indexName);
+				codeLien = realloc(codeLien, sizeof(char) * (strlen(codeLien) + strlen(index)  + 60));
 				strcat(codeLien, index);
 			}
 
@@ -829,9 +873,9 @@ variable :
 			strcat(code, codeLien);
 
 			addCode(&node, code);
-			addIndex(&node, index);
+			addIndex(&node, indexes);
 
-			int value = tableValue(str, $2[0]);
+			int value = tableValue(str, indexes);
 			addValue(&node, value);
 
 			$$ = node;
@@ -871,17 +915,23 @@ expression  :	// var et const = node, binop = sous arbre
 			 else if (strcmp($2, "*") == 0)  value = child1.value * child2.value;
 			 else if (strcmp($2, "/") == 0) {
 				if (child2.value == 0) {
-					printf("Erreur : division par 0\n");
+					char* error = (char*) malloc(sizeof(char) * 40);
+					sprintf(error, "Erreur : division par 0\n");
+					yyerror(error);
+					exit(1);
 				} else value = child1.value / child2.value;
 			 }
 			 else if (strcmp($2, ">>") == 0)  value = child1.value >> child2.value;
 			 else if (strcmp($2, "<<") == 0)  value = child1.value << child2.value;
 			 else if (strcmp($2, "&") == 0)  value = child1.value & child2.value;
 			 else if (strcmp($2, "|") == 0)  value = child1.value | child2.value;
-			 else 
-				printf("Erreur : opérateur non reconnu\n");
-			
-
+			 else {
+				char* error = (char*) malloc(sizeof(char) * 40);
+				sprintf(error, "Erreur : opérateur %s non reconnu\n", $2);
+				yyerror(error);
+				exit(1);
+			 }
+				
 			addValue(&node, value);
 
 			addParent(&node, &child1);
@@ -925,11 +975,26 @@ expression  :	// var et const = node, binop = sous arbre
 			addCode(&node, code);
 			addValue(&node, $1);
 			
-			$$ = node; 
+			$$ = node;
 		}
 	|	variable
 		{
 			CallTree node = $1;
+			if (strcmp(node.type, "int") == 0 && symbolhasValue(node.var_name) == 0){
+				printf("val : %d\n", symbolVal(node.var_name));
+				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
+				sprintf(error, "Erreur : la variable %s n'a pas de valeur!", node.var_name);
+				yyerror(error);
+				exit(1);
+			}
+			
+			if (strcmp(node.type, "int List") == 0 && tableitemHasValue(node.var_name, node.indexes) == 0) {
+				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
+				sprintf(error, "Erreur : le tableaux %s n'a pas de valeur pour les indexes donnee!", node.var_name);
+				yyerror(error);
+				exit(1);
+			}
+
 			$$ = node;
 		}
 	|	IDENTIFICATEUR '(' liste_expressions ')'
@@ -1103,3 +1168,6 @@ binary_comp :
 	|	NEQ		{ $$ = "!="; }
 ;
 %%
+
+
+

@@ -1,5 +1,6 @@
 typedef struct Variable {
     char *type;
+    int *sizes;
     void *value;
     int size;
 } Variable;
@@ -30,7 +31,7 @@ typedef struct HashTableList {
 
 unsigned long hash_function(char *str);
 
-Ht_item create_item(char *key, char *type, int size);
+Ht_item create_item(char *key, char *type, int *sizes);
 HashTable create_table(int size);
 int initVar(char *key);
 int initList(char *key, int *sizes);
@@ -39,12 +40,14 @@ void createScope();
 // --------- update Functions ---------
 
 int updateVar(char *str, int value);
-int updateListVar(char *listKey, int index, int value);
+int updateListVar(char *listKey, int *indexes, int value);
 
 // --------- getter Functions ---------
 
 int symbolVal(char *str);
-int tableValue(char *str, int index);
+int symbolhasValue(char *str);
+int tableValue(char *str, int *indexes);
+int tableitemHasValue(char *str, int *indexes);
 unsigned long getIndex(HashTable *table, char *key);
 
 // --------- Free Functions ---------
@@ -56,6 +59,7 @@ void free_table(HashTable *table);
 // --------- Scope Functions ---------
 
 HashTable *findScope(char *str);
+int inCurrentScope(char *str);
 void deleteScope();
 
 // --------- Print Functions ---------
