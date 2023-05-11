@@ -1,10 +1,19 @@
 {
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/nico/gitProjects/projetCompilation",
-            "binaryPath": "/home/nico/gitProjects/projetCompilation/parser.out",
-            "binaryArgs": []
-        }
-    ],
-    "C_Cpp.errorSquiggles": "disabled"
+	"makefile.launchConfigurations": [
+		{
+			"cwd": "/home/nico/gitProjects/projetCompilation",
+			"binaryPath": "/home/nico/gitProjects/projetCompilation/parser.out",
+			"binaryArgs": []
+		}
+	],
+	"C_Cpp.errorSquiggles": "disabled",
+	"files.associations": {
+		"stdlib.h": "c",
+		"calltree.h": "c",
+		"type_traits": "c",
+		"typeinfo": "c"
+	},
+	"editor.defaultFormatter": "xaver.clang-format",
+	"editor.formatOnSave": true,
+	"eslint.format.enable": true
 }

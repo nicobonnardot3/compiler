@@ -1,18 +1,38 @@
+%{
+#include <stdio.h>
+#include "y.tab.h"
+#include <string.h>
+#include <stdlib.h>
+#include "hashTable/HashTable.h"
+
+int yylex();
+int column = 1;
+int countColumns(char *str);
+int countLines(char *str);
+extern void yyerror (char const *s);
+%}
+
+
 D                       [0-9]
 L                       [a-zA-Z_]
 H                       [a-fA-F0-9]
 IS                      (u|U|l|L)*
 
-%{
-#include <stdio.h>
-#include "y.tab.h"
-void yyerror (char *s);
-int str_length(char str[]);
-int yylex();
-int column = 1;
-%}
+%option yylineno
 
 %%
+
+
+"("                     { column += 1; return *yytext; }
+")"                     { column += 1; return *yytext; }
+
+"["                     { column += 1; return *yytext; }
+"]"                     { column += 1; return *yytext; }
+
+"{"                     { createScope(); column += 1; return *yytext; }    
+"}"                     { deleteScope(); column += 1; return *yytext; }
+[:;=,]                { column += 1; return *yytext; }
+
 "int"                   { column += 3; return INT; }
 "void"                  { column += 4; return VOID; }
 
@@ -30,44 +50,67 @@ int column = 1;
 "return"                { column += 6; return RETURN; }
 "extern"                { column += 6; return EXTERN; }
 
-{L}({L}|{D})*           { column += str_length(yytext); yylval.id = yytext; return IDENTIFICATEUR; } // IDENTIFICATEUR
+{L}({L}|{D})*           {   
+                            column += strlen(yytext);
+                            yylval.id = strdup(yytext);
+                            return (IDENTIFICATEUR);
+                        }
+0[xX]{H}+{IS}?          {
+                            column += strlen(yytext); 
+                            yylval.num = atoi(yytext); 
+                            return CONSTANTE; 
+                        } // HEXA DECIMAL
+0{D}+{IS}?              { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // DECIMAL
+{D}+{IS}?               { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // INT
 
-0[xX]{H}+{IS}?          { column += str_length(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // HEXA DECIMAL
-0{D}+{IS}?              { column += str_length(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // DECIMAL
-{D}+{IS}?               { column += str_length(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // INT
+"+"                     { column += 1; return PLUS; }
+"-"                     { column += 1; return MOINS; }
+"*"                     { column += 1; return MUL; }
+"/"                     { column += 1; return DIV; }
 
-"+"                     { column += 1; return PLUS; } // PLUS
-"-"                     { column += 1; return MOINS; } // MOINS
-"*"                     { column += 1; return MUL; } // MULT
-"/"                     { column += 1; return DIV; } // DIV
+"&&"                     { column += 1; return BAND; }
+"||"                     { column += 1; return BOR; }
+">>"                    { column += 2; return RSHIFT; }
+"<<"                    { column += 2; return LSHIFT; }
+"&"                    { column += 2; return LAND; }
+"|"                    { column += 2; return LOR; }
 
-"&"                     { column += 1; return BAND; } // AND
-"|"                     { column += 1; return BOR; } // OR
-">>"                    { column += 2; return RSHIFT; } // SHIFT
-"<<"                    { column += 2; return LSHIFT; } // SHIFT
-"&&"                    { column += 2; return LAND; } // AND
-"||"                    { column += 2; return LOR; } // OR
-
-"<"                     { column += 1; return LT; } // LT
-">"                     { column += 1; return GT; } // GT
-"<="                    { column += 2; return LT; } // LT
-">="                    { column += 2; return GT; } // GT
-"=="                    { column += 2; return EQ; } // EQ
-"!="                    { column += 2; return NEQ; } // NEQ
-" "                     { column += 1; } // ESPACE
-
-"\n"                    {  column = 1; yylineno++; } // RETOUR A LA LIGNE
-
-[(){};=,]               { column += 1; return yytext[0]; } // PARENTHESE
+"<"                     { column += 1; return LT; }
+">"                     { column += 1; return GT; }
+"<="                    { column += 2; return LT; }
+">="                    { column += 2; return GT; }
+"=="                    { column += 2; return EQ; }
+"!="                    { column += 2; return NEQ; }
+" "                     { column += 1; }
+"\t"                    { column += 4; }
 
 
-.                       { char *str; sprintf(str, "Caractere non reconnu : %s\n\tligne : %d\n\t column %d\n", yytext, yylineno, column); yyerror(str); column++; }
+
+"\n"                    {  column = 0; }
+
+"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { column = countColumns(yytext); }
+"//".*                  {yylineno++; column = 0;}
+
+.                       {
+                            char errorString[255] = "";
+                            sprintf(errorString, "Char not recognized: %s", yytext);
+                            yyerror(errorString);
+                            column++;
+                        }
 %%
 
 int yywrap (void) {return 1;}
 
-int str_length(char str[]) {
-    int count; 
-    for (count = 0; str[count] != '\0'; ++count);
-    return count; 
+
+int countColumns(char *str) {
+    int count = 0;
+    char *p = str;
+    while (*p) {
+        if (*p == '\n')
+            count = 0;
+        else
+            count++;
+        p++;
+    }
+    return count;
 }
