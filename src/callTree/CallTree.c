@@ -30,7 +30,7 @@ void addParent(CallTree *callTree, CallTree *parentTree) {
     }
 
     if (callTree->parent != NULL) {
-        printf("Call Tree already has a parent\n");
+        // printf("Call Tree %s already has a parent\n", callTree->name);
         return;
     }
 
