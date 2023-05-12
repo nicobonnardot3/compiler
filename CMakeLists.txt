@@ -33,7 +33,7 @@ IF(FLEX_FOUND)
     )
 ENDIF()
 
-set (CMAKE_C_FLAGS "-D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasynchronous-unwind-tables -fstack-clash-protection -O2 -Wall")
+set (CMAKE_C_FLAGS "-Wno-return-type -D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasynchronous-unwind-tables -fstack-clash-protection -O2 -Wall")
 
 add_executable("${PROJECT_NAME}"
         src/main.c
@@ -41,6 +41,7 @@ add_executable("${PROJECT_NAME}"
         src/hashTable/HashTable.h
         src/callTree/CallTree.c
         src/callTree/CallTree.h
+        src/functionHashTable/functionHashTable.c
         ${BisonOutput}
         ${FlexOutput})
 
@@ -60,5 +61,9 @@ add_test(NAME break COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/break.c)
 add_test(NAME functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/functions.c)
 add_test(NAME tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux.c)
 add_test(NAME tableaux-multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux-multi.c)
+
+add_test(NAME my_tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab.c)
+add_test(NAME my_tableaux_multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab-multi.c)
+add_test(NAME my_functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions.c)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

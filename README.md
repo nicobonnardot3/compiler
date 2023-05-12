@@ -4,11 +4,13 @@
 ## Parser
 
 ### compile
+In the src directory :
 ```
 make
 ```
 
 ### launch
+In the src directory :
 ```
 ./parser.out
 ```

@@ -3,61 +3,138 @@ digraph Programme {
 node_printd_1 [label="printd" shape=polygon];
 
 
-node_main_17 [label="main, int" shape=invtrapezium color=blue];
-node_bloc_18 [shape=ellipse label="BLOC"];
-node_main_17 -> node_bloc_18
+node_aux_6 [label="aux, int" shape=invtrapezium color=blue];
+node_bloc_7 [shape=ellipse label="BLOC"];
+node_aux_6 -> node_bloc_7
 
-node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15 [shape=ellipse label="FOR"];
+node_return_node_expr_4_5 [shape=trapezium label="RETURN" color=blue];
 
-node_affect_node_var_i_3_node_0_4_4 [label=":=" shape=ellipse];
+node_expr_4 [shape=ellipse label="/"];
 
-node_var_i_3 [shape=ellipse label="i"];
-node_affect_node_var_i_3_node_0_4_4 -> node_var_i_3
+node_var_a_2 [shape=ellipse label="a"];
+node_expr_4 -> node_var_a_2
 
-node_0_4 [shape=ellipse label="0"];
-node_affect_node_var_i_3_node_0_4_4 -> node_0_4
-node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15 -> node_affect_node_var_i_3_node_0_4_4
+node_var_b_3 [shape=ellipse label="b"];
+node_expr_4 -> node_var_b_3
+node_return_node_expr_4_5 -> node_expr_4
 
-node_comp_6 [shape=ellipse label="<"];
+node_bloc_7 -> node_return_node_expr_4_5
 
-node_var_i_5 [shape=ellipse label="i"];
-node_comp_6 -> node_var_i_5;
 
-node_1000_6 [shape=ellipse label="1000"];
-node_comp_6 -> node_1000_6;
-node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15 -> node_comp_6
+node_loop_26 [label="loop, int" shape=invtrapezium color=blue];
+node_bloc_27 [shape=ellipse label="BLOC"];
+node_loop_26 -> node_bloc_27
 
-node_affect_node_var_i_7_node_expr_9_10 [label=":=" shape=ellipse];
+node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23 [shape=ellipse label="FOR"];
 
-node_var_i_7 [shape=ellipse label="i"];
-node_affect_node_var_i_7_node_expr_9_10 -> node_var_i_7
-
-node_expr_9 [shape=ellipse label="+"];
+node_affect_node_var_i_8_node_0_9_9 [label=":=" shape=ellipse];
 
 node_var_i_8 [shape=ellipse label="i"];
-node_expr_9 -> node_var_i_8
+node_affect_node_var_i_8_node_0_9_9 -> node_var_i_8
 
-node_1_9 [shape=ellipse label="1"];
-node_expr_9 -> node_1_9
-node_affect_node_var_i_7_node_expr_9_10 -> node_expr_9
-node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15 -> node_affect_node_var_i_7_node_expr_9_10
+node_0_9 [shape=ellipse label="0"];
+node_affect_node_var_i_8_node_0_9_9 -> node_0_9
+node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23 -> node_affect_node_var_i_8_node_0_9_9
 
-node_bloc_13 [shape=ellipse label="BLOC"];
+node_comp_11 [shape=ellipse label="<"];
 
-node_appel_printd_12 [shape=septagon label="printd"];
+node_var_i_10 [shape=ellipse label="i"];
+node_comp_11 -> node_var_i_10;
 
-node_var_i_11 [shape=ellipse label="i"];
-node_appel_printd_12 -> node_var_i_11
-node_bloc_13 -> node_appel_printd_12
-node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15 -> node_bloc_13
+node_10_11 [shape=ellipse label="10"];
+node_comp_11 -> node_10_11;
+node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23 -> node_comp_11
 
-node_bloc_18 -> node_for_node_affect_node_var_i_3_node_0_4_4_node_comp_6_node_affect_node_var_i_7_node_expr_9_10_15
+node_affect_node_var_i_12_node_expr_14_15 [label=":=" shape=ellipse];
 
-node_return_node_0_16_16 [shape=trapezium label="RETURN" color=blue];
+node_var_i_12 [shape=ellipse label="i"];
+node_affect_node_var_i_12_node_expr_14_15 -> node_var_i_12
 
-node_0_16 [shape=ellipse label="0"];
-node_return_node_0_16_16 -> node_0_16
+node_expr_14 [shape=ellipse label="+"];
 
-node_bloc_18 -> node_return_node_0_16_16
+node_var_i_13 [shape=ellipse label="i"];
+node_expr_14 -> node_var_i_13
+
+node_1_14 [shape=ellipse label="1"];
+node_expr_14 -> node_1_14
+node_affect_node_var_i_12_node_expr_14_15 -> node_expr_14
+node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23 -> node_affect_node_var_i_12_node_expr_14_15
+
+node_bloc_21 [shape=ellipse label="BLOC"];
+
+node_affect_node_var_a_16_node_expr_19_20 [label=":=" shape=ellipse];
+
+node_var_a_16 [shape=ellipse label="a"];
+node_affect_node_var_a_16_node_expr_19_20 -> node_var_a_16
+
+node_expr_19 [shape=ellipse label="+"];
+
+node_var_a_17 [shape=ellipse label="a"];
+node_expr_19 -> node_var_a_17
+
+node_var_b_18 [shape=ellipse label="b"];
+node_expr_19 -> node_var_b_18
+node_affect_node_var_a_16_node_expr_19_20 -> node_expr_19
+node_bloc_21 -> node_affect_node_var_a_16_node_expr_19_20
+node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23 -> node_bloc_21
+
+node_bloc_27 -> node_for_node_affect_node_var_i_8_node_0_9_9_node_comp_11_node_affect_node_var_i_12_node_expr_14_15_23
+
+node_return_node_var_a_24_25 [shape=trapezium label="RETURN" color=blue];
+
+node_var_a_24 [shape=ellipse label="a"];
+node_return_node_var_a_24_25 -> node_var_a_24
+
+node_bloc_27 -> node_return_node_var_a_24_25
+
+
+node_main_41 [label="main, int" shape=invtrapezium color=blue];
+node_bloc_42 [shape=ellipse label="BLOC"];
+node_main_41 -> node_bloc_42
+
+node_affect_node_var_a_29_node_10_30_30 [label=":=" shape=ellipse];
+
+node_var_a_29 [shape=ellipse label="a"];
+node_affect_node_var_a_29_node_10_30_30 -> node_var_a_29
+
+node_10_30 [shape=ellipse label="10"];
+node_affect_node_var_a_29_node_10_30_30 -> node_10_30
+
+node_bloc_42 -> node_affect_node_var_a_29_node_10_30_30
+
+node_affect_node_var_b_31_node_2_32_32 [label=":=" shape=ellipse];
+
+node_var_b_31 [shape=ellipse label="b"];
+node_affect_node_var_b_31_node_2_32_32 -> node_var_b_31
+
+node_2_32 [shape=ellipse label="2"];
+node_affect_node_var_b_31_node_2_32_32 -> node_2_32
+
+node_bloc_42 -> node_affect_node_var_b_31_node_2_32_32
+
+node_return_node_expr_39_40 [shape=trapezium label="RETURN" color=blue];
+
+node_expr_39 [shape=ellipse label="+"];
+
+node_appel_aux_35 [shape=septagon label="aux"];
+
+node_var_a_33 [shape=ellipse label="a"];
+node_appel_aux_35 -> node_var_a_33
+
+node_var_b_34 [shape=ellipse label="b"];
+node_appel_aux_35 -> node_var_b_34
+node_expr_39 -> node_appel_aux_35
+
+node_appel_loop_38 [shape=septagon label="loop"];
+
+node_var_a_36 [shape=ellipse label="a"];
+node_appel_loop_38 -> node_var_a_36
+
+node_var_b_37 [shape=ellipse label="b"];
+node_appel_loop_38 -> node_var_b_37
+node_expr_39 -> node_appel_loop_38
+node_return_node_expr_39_40 -> node_expr_39
+
+node_bloc_42 -> node_return_node_expr_39_40
 
 }

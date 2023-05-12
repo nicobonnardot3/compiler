@@ -1,4 +1,4 @@
-#include "callTree/CallTree.h"
+#include "functionHashTable/functionHashTable.h"
 #include "hashTable/HashTable.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +12,7 @@ CallTree **functionTree;
 
 HashTableList *hashTableList;
 HashTable varHashTable;
-HashTable functionHashTable;
+FunctionHashTable *functionHashTable;
 
 int *nodeIndex;
 char *outputFile;
@@ -36,13 +36,11 @@ int main(int argc, char **argv) {
     *nodeIndex = 1;
 
     HashTable *varHashTable = (HashTable *) malloc(sizeof(HashTable));
-    HashTable *functionHashTable = (HashTable *) malloc(sizeof(HashTable));
+    functionHashTable = (FunctionHashTable *) malloc(sizeof(FunctionHashTable));
+    *functionHashTable = createFunctionHashTable();
 
     *varHashTable = create_table(50000);
     varHashTable->prev = NULL;
-
-    *functionHashTable = create_table(50000);
-    functionHashTable->prev = NULL;
 
     hashTableList = (HashTableList *) malloc(sizeof(HashTableList));
     hashTableList->currentScope = varHashTable;

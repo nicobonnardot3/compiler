@@ -1,5 +1,5 @@
 %code requires {
-	#include "callTree/CallTree.h"
+	#include "functionHashTable/functionHashTable.h"
 }
 
 %{
@@ -11,6 +11,7 @@
 // ----- Vars -----
 extern int* nodeIndex;
 extern HashTable* varHashTable;
+extern struct FunctionHashTable* functionHashTable;
 extern char* outputFile;
 
 // ----- lex/yacc -----
@@ -27,6 +28,7 @@ extern int parseOperation(int a, int b, char* op);
 
 %union {
 	int num;
+	FunctionParam* params;
 	CallTree calltree;
 	CallTree** calltree_list;
 	char* id;
@@ -43,6 +45,7 @@ extern int parseOperation(int a, int b, char* op);
 
 %type <calltree> variable appel "appel" condition "condition" instruction "instruction" affectation "affectation" iteration "iteration" selection "selection" saut "saut" bloc "bloc" expression "expression" declarateur "declarateur" fonction "fonction"
 %type <calltree_list> liste_expressions "liste_expressions" liste_instructions "liste_instructions" declaration "declaration" liste_declarateurs "declarateurs" liste_declarations "declarations" liste_fonctions "fonctions"
+%type <params> liste_params "liste_parametre" param "parametre"
 %type <bin_op> binary_op binary_rel binary_comp
 %type <type> type
 %type <id> declarateur_list
@@ -67,7 +70,6 @@ extern int parseOperation(int a, int b, char* op);
 programme:
 	liste_declarations liste_fonctions
 	{
-		CallTree** list = $1;
 		CallTree** functionTree = $2;
 
 		FILE *fptr;
@@ -126,13 +128,12 @@ liste_fonctions :
 				int size = 0;
 				while (functionTree[size] != NULL) size++;
 
-				functionTree = (CallTree**) realloc(functionTree, (size + 2) * sizeof(CallTree*));
 				functionTree[size] = node;
 				$$ = functionTree;
 			}
 		|  	fonction
 			{
-				CallTree** functionTree = (CallTree**) calloc(2, sizeof(CallTree*));
+				CallTree** functionTree = (CallTree**) calloc(100, sizeof(CallTree*));
 				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $1;
 
@@ -273,7 +274,7 @@ fonction :
 				sprintf(nodeId, "node_%s_%d", filteredName, *nodeIndex);
 				*nodeIndex = *nodeIndex + 1;
 
-				CallTree** liste_declarations = $7;
+				// CallTree** liste_declarations = $7;
 				CallTree** liste_instructions = $8;
 
 				CallTree node = createCallTree(nodeId);
@@ -311,6 +312,10 @@ fonction :
 				free(filteredName);
 				free(nodeName);
 
+				FunctionHtItem *item = (FunctionHtItem*) malloc(sizeof(FunctionHtItem));
+				*item = createFunctionHtItem(name, $1, $4);
+				addFunction(item);
+
 				$$ = node;
 			}
 	|	EXTERN type IDENTIFICATEUR '(' liste_params ')' ';'
@@ -338,26 +343,41 @@ fonction :
 			free(nodeId);
 			free(nodeCode);
 
+			FunctionHtItem *item = (FunctionHtItem*) malloc(sizeof(FunctionHtItem));
+			*item = createFunctionHtItem(name, $2, $5);
+			addFunction(item);
+
 
 			$$ = node;
 		}
 ;
-type :	
+type :
 		VOID { $$ = "void"; }
 	|	INT  { $$ = "int"; }
 ;
-liste_params :	
+liste_params :
 		liste_params ',' param
+			{
+				$1->next = $3;
+				$$ = $1;
+			}
 	| param
-	|
+		{ $$ = $1; }
+	|	{ $$ = NULL; }
 ;
-param :
+param:
 	INT IDENTIFICATEUR
 		{
+			char* type = "int";
 			char* name = $2;
 
 			initVar(name);
-			updateVar(name, 0);
+			updateVar(name, 1);
+
+			FunctionParam *params = (FunctionParam*) malloc(sizeof(FunctionParam));
+			*params = createParam(name, type);
+
+			$$ = params;
 		}
 ;
 liste_instructions:
@@ -639,8 +659,6 @@ selection :
 			free(codeLien);
 			free(codeLien2);
 
-
-			addParent(&constante, &node);
 			addParent(&instruction, &node);
 			
 			$$ = node;
@@ -839,6 +857,21 @@ appel :
 	{
 		char *str = extractVarName($1);
 
+		FunctionHtItem *function = searchFunction(str);
+		if (function == NULL) {
+			char* error = malloc(sizeof(char) * (strlen(str) + 60));
+			sprintf(error, "Erreur : la fonction %s n'est pas déclarée", str);
+			yyerror(error);
+			exit(1);
+		}
+
+		if (verifyParams(function, $3) == 1) {
+			char* error = malloc(sizeof(char) * (strlen(str) + 60));
+			sprintf(error, "Erreur : Les parametres de la fonction ne corresponde pas!");
+			yyerror(error);
+			exit(1);
+		}
+
 		//char nodeName[255] = "";
 		char *nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50) );
 		sprintf(nodeName, "node_appel_%s_%d", str, *nodeIndex);
@@ -847,7 +880,8 @@ appel :
 		CallTree node = createCallTree(nodeName);
 
 		CallTree** list = $3;
-		int size = sizeof(list) / sizeof(CallTree*);
+		int size = 0;
+		while (list[size] != NULL) size++;
 
 		char* code = (char*) malloc(sizeof(char) * (strlen(str) + strlen(nodeName) + 255));
 		sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, str);
@@ -1003,6 +1037,8 @@ expression  :	// var et const = node, binop = sous arbre
 			 else if (strcmp($2, "&") == 0)  value = child1.value & child2.value;
 			 else if (strcmp($2, "|") == 0)  value = child1.value | child2.value;
 
+			node.type = "int";
+
 			addValue(&node, value);
 
 			addParent(&node, &child1);
@@ -1040,6 +1076,8 @@ expression  :	// var et const = node, binop = sous arbre
 
 			addParent(&node, &child);
 
+			node.type = child.type;
+
 			free(code);
 			free(tmp);
 			free(nodeName);
@@ -1057,6 +1095,7 @@ expression  :	// var et const = node, binop = sous arbre
 			sprintf(code, "\n%s [shape=ellipse label=\"%d\"];\n", nodeName, $1);
 			addCode(&node, code);
 			addValue(&node, $1);
+			node.type = "int";
 
 			free(code);
 			free(nodeName);
@@ -1097,7 +1136,8 @@ expression  :	// var et const = node, binop = sous arbre
 			*nodeIndex = *nodeIndex + 1;
 
 			CallTree** list = $3;
-			int size = sizeof(list) / sizeof(CallTree*);
+			int size = 0;
+			while (list[size] != NULL) size++;
 
 			CallTree node = createCallTree(nodeName);
 
@@ -1120,6 +1160,19 @@ expression  :	// var et const = node, binop = sous arbre
 			}
 
 			addCode(&node, code);
+
+			FunctionHtItem *item = searchFunction($1);
+			if (item == NULL) {
+				char* error = (char*) malloc(sizeof(char) * (strlen($1) + 255));
+				sprintf(error, "Erreur : la fonction %s n'existe pas!", $1);
+				yyerror(error);
+				free(error);
+				exit(1);
+			}
+
+			node.type = item->type;
+
+			addValue(&node, 0);
 
 			free(code);
 			free(nodeName);

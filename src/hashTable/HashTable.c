@@ -5,6 +5,7 @@
 
 int calculateIndex(int *sizes, int *indexes);
 extern HashTableList *hashTableList;
+extern void yyerror(const char *s);
 
 #define CAPACITY 50000
 
@@ -18,8 +19,8 @@ unsigned long hash_function(char *str) {
 }
 
 // Creates a new item to be inserted in the HashTable.
-Ht_item create_item(char *key, char *type, int *sizes) {
-    Ht_item item;
+HtItem create_item(char *key, char *type, int *sizes) {
+    HtItem item;
     item.key = (char *) malloc(strlen(key) + 10);
     item.var = (Variable *) malloc(sizeof(Variable));
     item.hasValue = 0;
@@ -44,7 +45,7 @@ HashTable create_table(int size) {
     table.size = size;
     table.count = 0;
     table.prev = NULL;
-    table.items = (Ht_item **) calloc(size, sizeof(Ht_item *));
+    table.items = (HtItem **) calloc(size, sizeof(HtItem *));
 
     for (int i = 0; i < table.size; i++) table.items[i] = NULL;
     return table;
@@ -53,7 +54,7 @@ HashTable create_table(int size) {
 // initialize a variable in the hash table's current scope
 int initVar(char *key) {
     HashTable *table = hashTableList->currentScope;
-    Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
+    HtItem *item = (HtItem *) malloc(sizeof(HtItem));
     *item = create_item(key, "int", NULL);
 
     unsigned long index = hash_function(key);
@@ -71,7 +72,7 @@ int initVar(char *key) {
 // initialize a list in the hash table's current scope
 int initList(char *key, int *sizes) {
     HashTable *table = hashTableList->currentScope;
-    Ht_item *item = (Ht_item *) malloc(sizeof(Ht_item));
+    HtItem *item = (HtItem *) malloc(sizeof(HtItem));
     *item = create_item(key, "int List", sizes);
 
     unsigned long index = hash_function(key);
@@ -81,7 +82,7 @@ int initList(char *key, int *sizes) {
         table = (HashTable *) realloc(table, sizeof(HashTable) * table->size * 2);
     }
 
-    Ht_item *current_item = table->items[index];
+    HtItem *current_item = table->items[index];
     if (current_item == NULL) {
         table->items[index] = item;
         table->count++;
@@ -118,7 +119,7 @@ int updateVar(char *str, int value) {
     }
     unsigned long index = getIndex(varScope, str);
     if (index == -1) return;
-    Ht_item *currentItem = varScope->items[index];
+    HtItem *currentItem = varScope->items[index];
 
     if (currentItem == NULL) {
         printf("Symbol \"%s\" not found \n", str);
@@ -142,7 +143,7 @@ int updateListVar(char *listKey, int *indexes, int value) {
     HashTable *varScope = findScope(listKey);
     unsigned long tableIndex = getIndex(varScope, listKey);
     if (tableIndex == -1) return NULL;
-    Ht_item *currentItem = varScope->items[tableIndex];
+    HtItem *currentItem = varScope->items[tableIndex];
 
     if (currentItem == NULL) {
         printf("item is NULL");
@@ -163,11 +164,12 @@ int updateListVar(char *listKey, int *indexes, int value) {
 
     int index = calculateIndex(var->sizes, indexes);
 
-    if (index >= calculateIndex(var->sizes, var->sizes)) {
+
+    if (index >= var->size) {
         char *error = (char *) malloc(100);
         sprintf(error, "index out of bounds");
         yyerror(error);
-        return NULL;
+        exit(1);
     }
 
     int *list = var->value;
@@ -183,7 +185,7 @@ int symbolVal(char *str) {
 
     unsigned long index = getIndex(table, str);
     if (index == -1) return NULL;
-    Ht_item *currentItem = table->items[index];
+    HtItem *currentItem = table->items[index];
 
     if (currentItem == NULL) return NULL;
 
@@ -200,7 +202,7 @@ int symbolhasValue(char *str) {
 
     unsigned long index = getIndex(table, str);
     if (index == -1) return 0;
-    Ht_item *currentItem = table->items[index];
+    HtItem *currentItem = table->items[index];
 
     if (currentItem == NULL) return 0;
 
@@ -216,7 +218,7 @@ int tableValue(char *str, int *indexes) {
     HashTable *table = findScope(str);
     unsigned long hashTableIndex = getIndex(table, str);
     if (hashTableIndex == -1) return NULL;
-    Ht_item *currentItem = table->items[hashTableIndex];
+    HtItem *currentItem = table->items[hashTableIndex];
 
     if (currentItem == NULL) return NULL;
 
@@ -238,21 +240,21 @@ int tableitemHasValue(char *str, int *indexes) {
     HashTable *table = findScope(str);
     unsigned long hashTableIndex = getIndex(table, str);
     if (hashTableIndex == -1) return 0;
-    Ht_item *currentItem = table->items[hashTableIndex];
+    HtItem *currentItem = table->items[hashTableIndex];
 
     if (currentItem == NULL) return 0;
 
     Variable *var = currentItem->var;
     if (var == NULL) return 0;
 
-    int size = var->size / sizeof(int);
+    // int size = var->size / sizeof(int);
 
     int index = calculateIndex(var->sizes, indexes);
 
     if (strcmp(var->type, "int List") == 1 || var->value == NULL || index >= calculateIndex(var->sizes, var->sizes))
         return 0;
 
-    int *value = var->value;
+    // int *value = var->value;
     // if (value[index] == NULL) return 0;
 
     return 1;
@@ -280,7 +282,7 @@ void free_var(Variable *var) {
 }
 
 // Frees an item.
-void free_item(Ht_item *item) {
+void free_item(HtItem *item) {
     // Frees an item.
     free(item->key);
     if (item->var != NULL) free_var(item->var);
@@ -290,7 +292,7 @@ void free_item(Ht_item *item) {
 // Frees a HashTable.
 void free_table(HashTable *table) {
     for (int i = 0; i < table->size; i++) {
-        Ht_item *item = table->items[i];
+        HtItem *item = table->items[i];
 
         if (item != NULL) free_item(item);
     }
@@ -307,7 +309,7 @@ HashTable *findScope(char *str) {
     HashTable *table = hashTableList->currentScope;
     while (table != NULL) {
         unsigned long index = getIndex(table, str);
-        Ht_item *currentItem = table->items[index];
+        HtItem *currentItem = table->items[index];
 
         if (currentItem != NULL) return table;
 
@@ -320,7 +322,7 @@ HashTable *findScope(char *str) {
 int inCurrentScope(char *str) {
     HashTable *table = hashTableList->currentScope;
     unsigned long index = getIndex(table, str);
-    Ht_item *currentItem = table->items[index];
+    HtItem *currentItem = table->items[index];
     if (currentItem == NULL) return 0;
     return 1;
 }
@@ -340,7 +342,7 @@ void print_table(HashTable *table) {
     printf("Size: %d, Count: %d \n", table->size, table->count);
 
     for (int i = 0; i < table->size; i++) {
-        Ht_item *item = table->items[i];
+        HtItem *item = table->items[i];
         if (item == NULL) continue;
 
         Variable *var = item->var;
@@ -355,7 +357,7 @@ void print_table(HashTable *table) {
 }
 
 // Prints the given item
-void print_item(Ht_item *item) {
+void print_item(HtItem *item) {
     if (item == NULL) {
         printf("item is NULL\n");
         return;

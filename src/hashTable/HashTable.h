@@ -6,16 +6,16 @@ typedef struct Variable {
 } Variable;
 
 
-typedef struct Ht_item {
+typedef struct HtItem {
     char *key;
     int hasValue;
     Variable *var;
-} Ht_item;
+} HtItem;
 
 // Defines the HashTable.
 typedef struct HashTable {
     // Contains an array of pointers to items.
-    Ht_item **items;
+    HtItem **items;
     int size;
     int count;
     struct HashTable *prev;
@@ -31,7 +31,7 @@ typedef struct HashTableList {
 
 unsigned long hash_function(char *str);
 
-Ht_item create_item(char *key, char *type, int *sizes);
+HtItem create_item(char *key, char *type, int *sizes);
 HashTable create_table(int size);
 int initVar(char *key);
 int initList(char *key, int *sizes);
@@ -53,7 +53,7 @@ unsigned long getIndex(HashTable *table, char *key);
 // --------- Free Functions ---------
 
 void free_var(Variable *var);
-void free_item(Ht_item *item);
+void free_item(HtItem *item);
 void free_table(HashTable *table);
 
 // --------- Scope Functions ---------
@@ -65,4 +65,4 @@ void deleteScope();
 // --------- Print Functions ---------
 
 void print_table(HashTable *table);
-void print_item(Ht_item *item);
+void print_item(HtItem *item);
