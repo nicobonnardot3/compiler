@@ -204,7 +204,6 @@ declarateur :
 			}
 	|	declarateur_list liste_indexes
 			{
-
 				if (inCurrentScope($1) == 1) {
 					char *error = (char*) malloc(sizeof(char) * (strlen($1) + 50));
 					sprintf(error, "Error: variable %s already declared", $1);
