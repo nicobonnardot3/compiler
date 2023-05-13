@@ -6,8 +6,7 @@ _All **make** commands are to be launched in the src directory_
 ### Compile with Cmake:
 
 ```bash
-cmake .
-make
+cmake . && make
 ```
 
 ### Compile with makefile: 
