@@ -233,7 +233,7 @@ declarateur :
 				$$ = node;
 			}
 ;
-declarateur_list :
+declarateur_list:
 		IDENTIFICATEUR 
 			{
 				char* str = extractVarName($1);
@@ -334,13 +334,13 @@ fonction :
 							char* error = malloc(sizeof(char) * (strlen(name) + 60));
 							switch(valid) {
 								case 1:
-									sprintf(error, "Error : Too many arguments for function %s", functionError->name);
+									sprintf(error, "Error : Too many arguments for function %s", tmpFunctionError->name);
 									break;
 								case 2:
-									sprintf(error, "Error : Too few arguments for function %s", functionError->name);
+									sprintf(error, "Error : Too few arguments for function %s", tmpFunctionError->name);
 									break;
 								default:
-									sprintf(error, "Error : Wrong type of arguments for function %s", functionError->name);
+									sprintf(error, "Error : Wrong type of arguments for function %s", tmpFunctionError->name);
 									break;
 							}
 							createError(error);
@@ -415,13 +415,13 @@ fonction :
 							char* error = malloc(sizeof(char) * (strlen(name) + 60));
 							switch(valid) {
 								case 1:
-									sprintf(error, "Error : Too many arguments for function %s", functionError->name);
+									sprintf(error, "Error : Too many arguments for function %s", tmpFunctionError->name);
 									break;
 								case 2:
-									sprintf(error, "Error : Too few arguments for function %s", functionError->name);
+									sprintf(error, "Error : Too few arguments for function %s", tmpFunctionError->name);
 									break;
 								default:
-									sprintf(error, "Error : Wrong type of arguments for function %s", functionError->name);
+									sprintf(error, "Error : Wrong type of arguments for function %s", tmpFunctionError->name);
 									break;
 							}
 							createError(error);

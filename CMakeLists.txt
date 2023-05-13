@@ -59,11 +59,11 @@ add_test(NAME loops COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/loops.c)
 add_test(NAME compteur COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/compteur.c)
 add_test(NAME break COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/break.c)
 add_test(NAME functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/functions.c)
-
 add_test(NAME tableaux_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux.c)
+add_test(NAME tableaux-multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux-multi.c)
+
 set_tests_properties(tableaux_error PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME tableaux-multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux-multi.c)
 
 # my tests
 
