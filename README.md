@@ -4,20 +4,27 @@
 ### Compile with Cmake:
 
 ```bash
+# In the project root directory:
 mkdir -p build && cd build
 cmake .. && make
 ```
 
 ### Compile with makefile: 
-In the src directory :
-
 ```bash
+# In the src directory:
 make
 ```
 
 ## Usage
-In the src directory :
+
 
 ```bash
-./minigcc <file.c> [output]
+# In the src directory:
+./minigcc <input file> [output file]
+```
+
+_if compiled with cmake you can run tests_
+```bash
+# In the build directory:
+make test
 ```
