@@ -320,7 +320,6 @@ fonction :
 
 				FunctionError *tmpFunctionError = functionError;
 				while (tmpFunctionError != NULL) {
-					printf("tmpFunctionError->name : %s\n", tmpFunctionError->name);
 					if (strcmp(tmpFunctionError->message, "") != 0) {
 						if (strcmp(tmpFunctionError->name, name) != 0) {
 							printf("Error : %s for %s\n", name, tmpFunctionError->name);
@@ -329,21 +328,31 @@ fonction :
 						}
 					}
 					if (strcmp(tmpFunctionError->name, name) == 0) {
-						printf("Error : %s\n", name);
-						FunctionHtItem *function = searchFunction(name);
 						CallTree** nodes = tmpFunctionError->nodes;
-						printf("%p\n", nodes);
-						// if (nodes != NULL)
-							// printList(nodes);
-
-						// printf("-------- List --------\n");
-						// printf("List size: %lu\n", sizeof(*nodes));
-						// int i = 0;
-						// while (nodes[i] != NULL) {
-						// 	printTree(nodes[i]);
-						// 	i++;
-						// }
-						// printf("-------- End List --------\n");
+						int valid = verifyParams(item, nodes);
+						if (valid != 0) {
+							char* error = malloc(sizeof(char) * (strlen(name) + 60));
+							switch(valid) {
+								case 1:
+									sprintf(error, "Error : Too many arguments");
+									break;
+								case 2:
+									sprintf(error, "Error : Too few arguments");
+									break;
+								default:
+									sprintf(error, "Error : Wrong type of arguments");
+									break;
+							}
+							yyerror(error);
+							exit(1);
+						}
+					} else if (strcmp(tmpFunctionError->name, "") != 0) {
+						CallTree** nodes = tmpFunctionError->nodes;
+						FunctionHtItem *function = searchFunction(tmpFunctionError->name);
+						if (function == NULL) {
+							yyerror("Error : Function not found");
+							exit(1);
+						}
 
 						int valid = verifyParams(function, nodes);
 						if (valid != 0) {
@@ -911,37 +920,32 @@ appel :
 		CallTree** list = $3;
 
 		FunctionHtItem *function = searchFunction(str);
+		FunctionError *tmp = functionError;
+		functionError = (FunctionError*) malloc(sizeof(FunctionError));
 		if (function == NULL) {
-			FunctionError *tmp = functionError;
-			functionError = (FunctionError*) malloc(sizeof(FunctionError));
-
 			char* error = malloc(sizeof(char) * (strlen(str) + 60));
 			sprintf(error, "Error : Function \"%s\" not declared", str);
-			functionError->name = (char*) malloc(sizeof(char) * (strlen(str) + 1));
-			strcpy(functionError->name, str);
-			printf("function name: %s\n", functionError->name);
 			functionError->message = (char*) malloc(sizeof(char) * (strlen(error) + 1));
 			strcpy(functionError->message, error);
-			int size = 0;
-				while (list[size] != NULL) size++;
-
-			CallTree** nodes = (CallTree**) calloc(size + 1, sizeof(CallTree*));
-			memcpy(nodes, list, (size + 1) * sizeof(CallTree *));
-			// printList(nodes);
-			functionError->nodes = nodes;
-			functionError->prev = tmp;
+		} else {
+			functionError->message = "";
 		}
 
-		//char nodeName[255] = "";
+		functionError->name = (char*) malloc(sizeof(char) * (strlen(str) + 1));
+		strcpy(functionError->name, str);
+		int size = 0;
+		while (list[size] != NULL) size++;
+
+		CallTree** nodes = (CallTree**) calloc(size + 1, sizeof(CallTree*));
+		memcpy(nodes, list, (size + 1) * sizeof(CallTree *));
+		functionError->nodes = nodes;
+		functionError->prev = tmp;
+
 		char *nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50) );
 		sprintf(nodeName, "node_appel_%s_%d", str, *nodeIndex);
 		*nodeIndex = *nodeIndex + 1;
 
 		CallTree node = createCallTree(nodeName);
-
-		
-		int size = 0;
-		while (list[size] != NULL) size++;
 
 		char* code = (char*) malloc(sizeof(char) * (strlen(str) + strlen(nodeName) + 255));
 		sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, str);
@@ -966,11 +970,10 @@ appel :
 		free(code);
 		free(nodeName);
 
-		
 		$$ = node;
 	}
 ;
-variable :
+variable:
 		IDENTIFICATEUR
 			{
 				char* str = extractVarName($1);
@@ -1054,7 +1057,7 @@ variable :
 ;
 expression:	// var et const = node, binop = sous arbre
 		'(' expression ')' { $$ = $2;}
-	|	expression binary_op expression %prec OP	
+	|	expression binary_op expression %prec OP
 		{
 			char *nodeName = (char*) malloc(sizeof(char) * 40);
 			sprintf(nodeName, "node_expr_%d", *nodeIndex);
@@ -1080,22 +1083,7 @@ expression:	// var et const = node, binop = sous arbre
 
 			addCode(&node, code);
 
-			int value = NULL;
-			if (strcmp($2, "+") == 0)  value = child1.value + child2.value;
-			 else if (strcmp($2, "-") == 0)  value = child1.value - child2.value;
-			 else if (strcmp($2, "*") == 0)  value = child1.value * child2.value;
-			 else if (strcmp($2, "/") == 0) {
-				if (child2.value == 0) {
-					char* error = (char*) malloc(sizeof(char) * 40);
-					sprintf(error, "Error : divide by zero\n");
-					yyerror(error);
-					exit(1);
-				} else value = child1.value / child2.value;
-			 }
-			 else if (strcmp($2, ">>") == 0)  value = child1.value >> child2.value;
-			 else if (strcmp($2, "<<") == 0)  value = child1.value << child2.value;
-			 else if (strcmp($2, "&") == 0)  value = child1.value & child2.value;
-			 else if (strcmp($2, "|") == 0)  value = child1.value | child2.value;
+			int value = parseOperation(child1.value, child2.value, $2);
 
 			node.type = "int";
 
@@ -1218,30 +1206,25 @@ expression:	// var et const = node, binop = sous arbre
 			addCode(&node, code);
 
 			FunctionHtItem *function = searchFunction($1);
+			FunctionError *tmp = functionError;
+			functionError = (FunctionError*) malloc(sizeof(FunctionError));
 			if (function == NULL) {
-				FunctionError *tmp = functionError;
-				functionError = (FunctionError*) malloc(sizeof(FunctionError));
-
 				char* error = malloc(sizeof(char) * (strlen($1) + 60));
 				sprintf(error, "Error : Function \"%s\" not declared", $1);
-				functionError->name = (char*) malloc(sizeof(char) * (strlen($1) + 1));
-				strcpy(functionError->name, $1);
 				functionError->message = (char*) malloc(sizeof(char) * (strlen(error) + 1));
 				strcpy(functionError->message, error);
-
-				printf("size : %d\n", size);
-
-				CallTree** nodes = (CallTree**) calloc(size + 1, sizeof(CallTree*));
-				for (int i = 0; i < size; i++) {
-					nodes[i] = list[i];
-				}
-				// printList(nodes);
-				functionError->nodes = nodes;
-				functionError->prev = tmp;
 			} else {
+				functionError->message = "";
 				node.type = function->type;
 			}
-
+			functionError->name = (char*) malloc(sizeof(char) * (strlen($1) + 1));
+			strcpy(functionError->name, $1);
+			CallTree** nodes = (CallTree**) calloc(size + 1, sizeof(CallTree*));
+			for (int i = 0; i < size; i++) {
+				nodes[i] = list[i];
+			}
+			functionError->nodes = nodes;
+			functionError->prev = tmp;
 
 			addValue(&node, 0);
 

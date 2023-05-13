@@ -20,7 +20,7 @@ int main() {
     b = 2;
     printd(aux(a, b));
     printd(loop(a, b));
-    return aux(a, b) + loop(a, b) + fact();
+    return aux(a, b) + loop(a, b) + fact(12);
 }
 
 

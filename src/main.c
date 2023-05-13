@@ -125,19 +125,19 @@ int parseOperation(int a, int b, char *op) {
     if (strcmp("+", op) == 0) return a + b;
     if (strcmp("-", op) == 0) return a - b;
     if (strcmp("*", op) == 0) return a * b;
-    if (strcmp("/", op) == 0) return a / b;
+    if (strcmp("/", op) == 0) {
+        if (b == 0) {
+            char *error = (char *) malloc(sizeof(char) * 40);
+            sprintf(error, "Error : divide by zero\n");
+            yyerror(error);
+            exit(1);
+        }
+        return a / b;
+    }
     if (strcmp("<<", op) == 0) return a << b;
     if (strcmp(">>", op) == 0) return a >> b;
     if (strcmp("&", op) == 0) return a & b;
     if (strcmp("|", op) == 0) return a | b;
-    if (strcmp("&&", op) == 0) return a && b;
-    if (strcmp("||", op) == 0) return a || b;
-    if (strcmp("<", op) == 0) return a < b;
-    if (strcmp(">", op) == 0) return a > b;
-    if (strcmp(">=", op) == 0) return a >= b;
-    if (strcmp("<=", op) == 0) return a <= b;
-    if (strcmp("==", op) == 0) return a == b;
-    if (strcmp("!=", op) == 0) return a != b;
     return 0;
 }
 

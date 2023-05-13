@@ -10,32 +10,13 @@ CallTree createCallTree(char *name) {
     callTree.name = strdup(name);
     callTree.value = NULL;
     callTree.indexes = NULL;
-    callTree.type = malloc(sizeof(char) * 255);
-    callTree.code = malloc(sizeof(char) * 255);
+    callTree.type = (char *) malloc(sizeof(char) * 255);
+    callTree.code = (char *) malloc(sizeof(char) * 255);
     strcpy(callTree.code, "");
-    callTree.parent = NULL;
 
     return callTree;
 }
 
-void addParent(CallTree *callTree, CallTree *parentTree) {
-    if (callTree == NULL) {
-        printf("Call Tree is NULL\n");
-        return;
-    }
-
-    if (parentTree == NULL) {
-        printf("Parent Tree is NULL\n");
-        return;
-    }
-
-    if (callTree->parent != NULL) {
-        // printf("Call Tree %s already has a parent\n", callTree->name);
-        return;
-    }
-
-    callTree->parent = parentTree;
-}
 
 void addValue(CallTree *callTree, int value) {
     if (callTree == NULL) {

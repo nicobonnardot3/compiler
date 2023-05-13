@@ -211,11 +211,8 @@ node_expr_60 -> node_expr_58
 
 node_appel_fact_59 [shape=septagon label="fact"];
 
-node_5_59 [shape=ellipse label="5"];
-node_appel_fact_59 -> node_5_59
-
-node_7_59 [shape=ellipse label="7"];
-node_appel_fact_59 -> node_7_59
+node_12_59 [shape=ellipse label="12"];
+node_appel_fact_59 -> node_12_59
 node_expr_60 -> node_appel_fact_59
 node_return_node_expr_60_61 -> node_expr_60
 

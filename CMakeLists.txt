@@ -59,11 +59,21 @@ add_test(NAME loops COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/loops.c)
 add_test(NAME compteur COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/compteur.c)
 add_test(NAME break COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/break.c)
 add_test(NAME functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/functions.c)
+
 add_test(NAME tableaux_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux.c)
+set_tests_properties(tableaux_error PROPERTIES WILL_FAIL TRUE)
+
 add_test(NAME tableaux-multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux-multi.c)
 
 add_test(NAME my_tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab.c)
 add_test(NAME my_tableaux_multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab-multi.c)
 add_test(NAME my_functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions.c)
+
+add_test(NAME my_function_not_exists_error COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/function-not-exists.c")
+set_tests_properties(my_function_not_exists_error PROPERTIES WILL_FAIL TRUE)
+add_test(NAME my_function_too_many_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/function-too-many-args.c)
+set_tests_properties(my_function_too_many_args_error PROPERTIES WILL_FAIL TRUE)
+add_test(NAME my_function_too_few_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/function-too-few-args.c)
+set_tests_properties(my_function_too_few_args_error PROPERTIES WILL_FAIL TRUE)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
