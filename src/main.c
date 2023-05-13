@@ -32,6 +32,14 @@ void printList(CallTree **list);
 
 
 int main(int argc, char **argv) {
+
+    if (argc == 1) {
+        printf("Error: no file specified\n");
+        printf("Usage: ./minigcc <input file> [output file]\n");
+        printf("Example: ./minigcc test.c output.dot\n");
+        return 1;
+    }
+
     nodeIndex = malloc(sizeof(int));
     functionError = (FunctionError *) malloc(sizeof(FunctionError));
 
