@@ -12,6 +12,7 @@
 extern int* nodeIndex;
 extern HashTable* varHashTable;
 extern struct FunctionHashTable* functionHashTable;
+extern char* inputFile;
 extern char* outputFile;
 extern struct FunctionError* functionError;
 

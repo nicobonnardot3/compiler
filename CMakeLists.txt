@@ -81,6 +81,10 @@ add_test(NAME my_expr COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/expres
 add_test(NAME my_expr_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/expressions/expression-error.c)
 set_tests_properties(my_expr_error PROPERTIES WILL_FAIL TRUE)
 
+# loops
+add_test(NAME my_loops COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/loops/loops.c)
+
+
 # tableaux
 add_test(NAME my_tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tableaux/tab.c)
 add_test(NAME my_tableaux_multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tableaux/tab-multi.c)

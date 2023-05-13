@@ -15,6 +15,7 @@ HashTable varHashTable;
 FunctionHashTable *functionHashTable;
 
 int *nodeIndex;
+char *inputfile;
 char *outputFile;
 FunctionError *functionError;
 
@@ -39,6 +40,9 @@ int main(int argc, char **argv) {
         printf("Example: ./minigcc test.c output.dot\n");
         return 1;
     }
+
+    inputfile = (char *) malloc(sizeof(char) * (strlen(argv[1]) + 1));
+    strcpy(inputfile, argv[1]);
 
     nodeIndex = malloc(sizeof(int));
     functionError = (FunctionError *) malloc(sizeof(FunctionError));
@@ -152,7 +156,8 @@ int parseOperation(int a, int b, char *op) {
 void yyerror(char const *s) {
     extern int yylineno;
     extern int column;
-    fprintf(stderr, "%s: \n\tLine: %d\n\tColumn: %d \n", s, yylineno, column);
+    fprintf(stderr, "%s: \n\t%s:%d:%d", s, inputfile, yylineno, column);
+    exit(1);
 }
 
 void printList(CallTree **list) {
@@ -166,7 +171,4 @@ void printList(CallTree **list) {
     printf("-------- End List --------\n");
 }
 
-void createError(char *error) {
-    yyerror(error);
-    exit(1);
-}
+void createError(char *error) { yyerror(error); }
