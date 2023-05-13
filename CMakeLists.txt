@@ -1,7 +1,5 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.18)
 project(minigcc)
-
-set(CMAKE_C_STANDARD 23)
 
 enable_testing()
 include_directories(src)
