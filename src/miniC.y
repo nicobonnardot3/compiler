@@ -124,6 +124,7 @@ liste_declarations :
 liste_fonctions :
 			liste_fonctions fonction
 			{
+				
 				CallTree** functionTree = $1;
 				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $2;
