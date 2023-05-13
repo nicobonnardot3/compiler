@@ -26,6 +26,7 @@ extern char* extractVarName(char* str);
 extern void extractTableVar(char* str, char* input);
 extern void extractVarIndex(char* str, int* index, char** src);
 extern int parseOperation(int a, int b, char* op);
+extern void createError(char* error);
 %}
 
 %union {
@@ -52,7 +53,6 @@ extern int parseOperation(int a, int b, char* op);
 %type <type> type
 %type <id> declarateur_list
 %type <indexes> liste_indexes
-
 
 %left PLUS MOINS
 %left MUL DIV
@@ -86,7 +86,6 @@ programme:
 		int i = 0;
 		while (functionTree[i] != NULL) {
 			CallTree* node = functionTree[i];
-			// printf("%s\n", node->code);
 			fprintf(fptr, "%s\n", node->code);
 			free(node);
 			i++;
@@ -111,11 +110,12 @@ liste_declarations :
 						int size2 = 0;
 						while ($2[size2] != NULL) size2++;
 
-						list = (CallTree**) realloc(list, (size + size2 + 2) * sizeof(CallTree*));
+						list = (CallTree**) realloc(list, (size + size2 + 3) * sizeof(CallTree*));
 						for (int i = 0; i < size2 + 2; i++) {
 							CallTree* node = $2[i];
 							list[size + i - 1] = node;
 						}
+						list[size + size2 + 1] = NULL;
 					}
 					$$ = list;
 				}
@@ -130,16 +130,20 @@ liste_fonctions :
 				int size = 0;
 				while (functionTree[size] != NULL) size++;
 
+				functionTree = (CallTree**) realloc(functionTree, (size + 3) * sizeof(CallTree*));
+
 				functionTree[size] = node;
+				functionTree[size + 1] = NULL;
 				$$ = functionTree;
 			}
 		|  	fonction
 			{
-				CallTree** functionTree = (CallTree**) calloc(100, sizeof(CallTree*));
+				CallTree** functionTree = (CallTree**) calloc(2, sizeof(CallTree*));
 				CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 				*node = $1;
 
 				functionTree[0] = node;
+				functionTree[1] = NULL;
 				$$ = functionTree;
 			}
 ;
@@ -157,10 +161,11 @@ liste_declarateurs:
 						int size = 0;
 						while (list[size] != NULL) size++;
 
-						list = (CallTree**) realloc(list, (size + 2) * sizeof(CallTree*));
+						list = (CallTree**) realloc(list, (size + 3) * sizeof(CallTree*));
 						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 						*node = $3;
 						list[size] = node;
+						list[size + 1] = NULL;
 						$$ = list;
 					}
 			|	declarateur
@@ -169,6 +174,7 @@ liste_declarateurs:
 						CallTree* node = (CallTree*) malloc(sizeof(CallTree));
 						*node = $1;
 						list[0] = node;
+						list[1] = NULL;
 						$$ = list;
 					}
 ;
@@ -180,9 +186,7 @@ declarateur :
 				if (inCurrentScope(str) == 1) {
 					char *error = (char*) malloc(sizeof(char) * (strlen(str) + 50));
 					sprintf(error, "Error: variable %s already declared", str);
-					yyerror(error);
-					free(error);
-					exit(1);
+					createError(error);
 				}
 				char* nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 20));
 				sprintf(nodeName, "node_%s_%d", str, *nodeIndex);
@@ -205,9 +209,7 @@ declarateur :
 				if (inCurrentScope($1) == 1) {
 					char *error = (char*) malloc(sizeof(char) * (strlen($1) + 50));
 					sprintf(error, "Error: variable %s already declared", $1);
-					yyerror(error);
-					free(error);
-					exit(1);
+					createError(error);
 				}
 
 				int *sizes = $2;
@@ -228,7 +230,6 @@ declarateur :
 				free(nodeName);
 				free(code);
 
-
 				$$ = node;
 			}
 ;
@@ -246,16 +247,18 @@ liste_indexes:
 				int size = 0;
 				while (indexes[size] != -1) size++;
 
-				// indexes = (int *) realloc(indexes, (size + 2) * sizeof(int));
+				indexes = (int *) realloc(indexes, (size + 2) * sizeof(int));
+				
 				indexes[size] = $3;
+				indexes[size + 1] = -1;
 
 				$$ = indexes;
 			}
 	|	'[' CONSTANTE ']'
 			{
-				int *indexes = (int *) calloc(100, sizeof(int));
-				for (int i = 0; i < 100; i++) indexes[i] = -1;
+				int *indexes = (int *) calloc(2, sizeof(int));
 				indexes[0] = $2;
+				indexes[1] = -1;
 				$$ = indexes;
 			}
 ;
@@ -294,7 +297,6 @@ fonction :
 
 				int i = 0;
 				while (liste_instructions != NULL && liste_instructions[i] != NULL) {
-					addParent(liste_instructions[i], &node);
 
 					char* codeLien = (char*) malloc(sizeof(char) * (strlen(liste_instructions[i]->name) + strlen(blocName) + 255));
 					sprintf(codeLien, "\n%s -> %s\n", blocName, liste_instructions[i]->name);
@@ -322,9 +324,7 @@ fonction :
 				while (tmpFunctionError != NULL) {
 					if (strcmp(tmpFunctionError->message, "") != 0) {
 						if (strcmp(tmpFunctionError->name, name) != 0) {
-							printf("Error : %s for %s\n", name, tmpFunctionError->name);
-							yyerror(tmpFunctionError->message);
-							exit(1);
+							createError(tmpFunctionError->message);
 						}
 					}
 					if (strcmp(tmpFunctionError->name, name) == 0) {
@@ -334,24 +334,24 @@ fonction :
 							char* error = malloc(sizeof(char) * (strlen(name) + 60));
 							switch(valid) {
 								case 1:
-									sprintf(error, "Error : Too many arguments");
+									sprintf(error, "Error : Too many arguments for function %s", functionError->name);
 									break;
 								case 2:
-									sprintf(error, "Error : Too few arguments");
+									sprintf(error, "Error : Too few arguments for function %s", functionError->name);
 									break;
 								default:
-									sprintf(error, "Error : Wrong type of arguments");
+									sprintf(error, "Error : Wrong type of arguments for function %s", functionError->name);
 									break;
 							}
-							yyerror(error);
-							exit(1);
+							createError(error);
 						}
 					} else if (strcmp(tmpFunctionError->name, "") != 0) {
 						CallTree** nodes = tmpFunctionError->nodes;
 						FunctionHtItem *function = searchFunction(tmpFunctionError->name);
 						if (function == NULL) {
-							yyerror("Error : Function not found");
-							exit(1);
+							char* error = malloc(sizeof(char) * (strlen(tmpFunctionError->name) + 60));
+							sprintf(error, "Error : Function %s not found", tmpFunctionError->name);
+							createError(error);
 						}
 
 						int valid = verifyParams(function, nodes);
@@ -359,17 +359,16 @@ fonction :
 							char* error = malloc(sizeof(char) * (strlen(name) + 60));
 							switch(valid) {
 								case 1:
-									sprintf(error, "Error : Too many arguments");
+									sprintf(error, "Error : Too many arguments for function %s", tmpFunctionError->name);
 									break;
 								case 2:
-									sprintf(error, "Error : Too few arguments");
+									sprintf(error, "Error : Too few arguments for function %s", tmpFunctionError->name);
 									break;
 								default:
-									sprintf(error, "Error : Wrong type of arguments");
+									sprintf(error, "Error : Wrong type of arguments for function %s", tmpFunctionError->name);
 									break;
 							}
-							yyerror(error);
-							exit(1);
+							createError(error);
 						}
 					}
 					tmpFunctionError = tmpFunctionError->prev;
@@ -406,6 +405,57 @@ fonction :
 			FunctionHtItem *item = (FunctionHtItem*) malloc(sizeof(FunctionHtItem));
 			*item = createFunctionHtItem(name, $2, $5);
 			addFunction(item);
+
+			FunctionError *tmpFunctionError = functionError;
+				while (tmpFunctionError != NULL) {
+					if (strcmp(tmpFunctionError->name, name) == 0) {
+						CallTree** nodes = tmpFunctionError->nodes;
+						int valid = verifyParams(item, nodes);
+						if (valid != 0) {
+							char* error = malloc(sizeof(char) * (strlen(name) + 60));
+							switch(valid) {
+								case 1:
+									sprintf(error, "Error : Too many arguments for function %s", functionError->name);
+									break;
+								case 2:
+									sprintf(error, "Error : Too few arguments for function %s", functionError->name);
+									break;
+								default:
+									sprintf(error, "Error : Wrong type of arguments for function %s", functionError->name);
+									break;
+							}
+							createError(error);
+						}
+					} else if (strcmp(tmpFunctionError->name, "") != 0) {
+						CallTree** nodes = tmpFunctionError->nodes;
+						FunctionHtItem *function = searchFunction(tmpFunctionError->name);
+						if (function == NULL) {
+							char* error = malloc(sizeof(char) * (strlen(tmpFunctionError->name) + 60));
+							sprintf(error, "Error : Function %s not found", tmpFunctionError->name);
+							createError(error);
+						}
+
+						int valid = verifyParams(function, nodes);
+						if (valid != 0) {
+							char* error = malloc(sizeof(char) * (strlen(name) + 60));
+							switch(valid) {
+								case 1:
+									sprintf(error, "Error : Too many arguments for function %s", tmpFunctionError->name);
+									break;
+								case 2:
+									sprintf(error, "Error : Too few arguments for function %s", tmpFunctionError->name);
+									break;
+								default:
+									sprintf(error, "Error : Wrong type of arguments for function %s", tmpFunctionError->name);
+									break;
+							}
+							createError(error);
+						}
+					}
+					tmpFunctionError = tmpFunctionError->prev;
+				}
+
+				functionError = NULL;
 
 
 			$$ = node;
@@ -522,11 +572,6 @@ iteration :
 			free(codeLien2);
 			free(codeLien3);
 			free(codeLien4);
-
-			addParent(&affectation1, &node);
-			addParent(&condition, &node);
-			addParent(&affectation2, &node);
-			addParent(&instruction, &node);
 			
 			$$ = node;
 		}
@@ -562,10 +607,6 @@ iteration :
 			free(codeLien);
 			free(codeLien2);
 
-
-			addParent(&condition, &node);
-			addParent(&instruction, &node);
-			
 			$$ = node;
 		}
 ;
@@ -600,9 +641,6 @@ selection :
 			free(nodeName);
 			free(codeLien);
 			free(codeLien2);
-
-			addParent(&condition, &node);
-			addParent(&instruction, &node);
 			
 			$$ = node;
 		}
@@ -645,11 +683,6 @@ selection :
 			free(codeLien2);
 			free(codeLien3);
 
-
-			addParent(&condition, &node);
-			addParent(&instruction1, &node);
-			addParent(&instruction2, &node);
-
 			$$ = node;
 		}
 	|	SWITCH '(' expression ')' instruction
@@ -682,9 +715,6 @@ selection :
 			free(nodeName);
 			free(codeLien);
 			free(codeLien2);
-
-			addParent(&expression, &node);
-			addParent(&instruction, &node);
 			
 			$$ = node;
 		}
@@ -719,7 +749,6 @@ selection :
 			free(codeLien);
 			free(codeLien2);
 
-			addParent(&instruction, &node);
 			
 			$$ = node;
 		}
@@ -747,8 +776,6 @@ selection :
 			free(nodeName);
 			free(codeLien);
 
-
-			addParent(&instruction, &node);
 			
 			$$ = node;
 		}
@@ -815,8 +842,6 @@ saut :
 			free(nodeName);
 			free(codeLien);
 
-
-			addParent(&expression, &node);
 			
 			$$ = node;
 		}
@@ -829,16 +854,14 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
       
 			if (findScope(var.var_name) == NULL) {
 				char* error = malloc(sizeof(char) * (strlen(var.var_name) + 60));
-				sprintf(error, "Error : var %s is not declared", var.var_name);
-				yyerror(error);
-				exit(1);
+				sprintf(error, "Error : The variable %s is not declared", var.var_name);
+				createError(error);
 			}
 			
 			if (expr.var_name != NULL && findScope(expr.var_name) == NULL) {
 				char* error = malloc(sizeof(char) * (strlen(expr.var_name) + 60));
-				sprintf(error, "Error : var %s is not declared", expr.var_name);
-				yyerror(error);
-				exit(1);
+				sprintf(error, "Error : The variable %s is not declared", expr.var_name);
+				createError(error);
 			}
       
 	  		if (strcmp(var.type, "int") == 0) updateVar(var.var_name, expr.value);
@@ -863,8 +886,6 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 			strcat(code, code3);
 
 			CallTree node = createCallTree(nodeName);
-			addParent(&var, &node);
-			addParent(&expr, &node);
 
 			addCode(&node, code);
 
@@ -896,7 +917,6 @@ bloc :
 			*nodeIndex = *nodeIndex + 1;
 			
 			for (int i = 0; i < size; i++) {
-				addParent(list[i], &node);
 
 				char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(node.name) + strlen(list[i]->name) + 60));
 				sprintf(tmp, "%s%s%s -> %s\n", code, list[i]->code, node.name, list[i]->name);
@@ -941,7 +961,7 @@ appel :
 		functionError->nodes = nodes;
 		functionError->prev = tmp;
 
-		char *nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50) );
+		char *nodeName = (char*) malloc(sizeof(char) * (strlen(str) + 50));
 		sprintf(nodeName, "node_appel_%s_%d", str, *nodeIndex);
 		*nodeIndex = *nodeIndex + 1;
 
@@ -951,9 +971,7 @@ appel :
 		sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, str);
 
 		for (int i = 0; i < size; i++) {
-			addParent(list[i], &node);
-
-			char* codeLien = malloc(sizeof(char) * (strlen(str) + strlen(list[i]->name) + 40));
+			char* codeLien = (char *) malloc(sizeof(char) * (strlen(str) + strlen(list[i]->name) + 40));
 			sprintf(codeLien, "%s -> %s\n", nodeName, list[i]->name);
 
 			char* tmp = malloc(sizeof(char) * (strlen(code) + strlen(list[i]->code) + strlen(codeLien) + 60));
@@ -1013,7 +1031,6 @@ variable:
 			CallTree node = createCallTree(nodeName);
 			node.var_name = strdup(str);
 			node.type = "int List";
-			addParent(&var, &node);
       
       		int *indexes = $2;
      		int size = 0;
@@ -1089,9 +1106,6 @@ expression:	// var et const = node, binop = sous arbre
 
 			addValue(&node, value);
 
-			addParent(&node, &child1);
-			addParent(&node, &child2);
-
 			free(code);
 			free(tmp);
 			free(tmp2);
@@ -1121,8 +1135,6 @@ expression:	// var et const = node, binop = sous arbre
 
 			int value = -child.value;
 			addValue(&node, value);
-
-			addParent(&node, &child);
 
 			node.type = child.type;
 
@@ -1154,21 +1166,33 @@ expression:	// var et const = node, binop = sous arbre
 	|	variable
 		{
 			CallTree node = $1;
-			if (strcmp(node.type, "int") == 0 && symbolhasValue(node.var_name) == 0){
-				printf("val : %d\n", symbolVal(node.var_name));
-				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
-				sprintf(error, "Error : The variable %s has no value !", node.var_name);
-				yyerror(error);
-				free(error);
-				exit(1);
+			if (strcmp(node.type, "int") == 0) {
+				if (symbolIsDeclared(node.var_name) == 0) {
+					char* error = (char*) malloc(sizeof(char) * (strlen(node.var_name) + 255));
+					sprintf(error, "Error : The variable %s is not declared!", node.var_name);
+					createError(error);
+				}
+
+				if (symbolhasValue(node.var_name) == 0){
+					printf("val : %d\n", symbolVal(node.var_name));
+					char* error = (char*) malloc(sizeof(char) * (strlen(node.var_name) + 255));
+					sprintf(error, "Error : The variable %s has no value!", node.var_name);
+					createError(error);
+				}
 			}
-			
-			if (strcmp(node.type, "int List") == 0 && tableitemHasValue(node.var_name, node.indexes) == 0) {
-				char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
-				sprintf(error, "Error : The array has %s no value at specified indexes !", node.var_name);
-				yyerror(error);
-				free(error);
-				exit(1);
+
+			if (strcmp(node.type, "int List") == 0) {
+				if (symbolIsDeclared(node.var_name) == 0) {
+					char* error = (char*) malloc(sizeof(char) * (strlen(node.var_name) + 255));
+					sprintf(error, "Error : The variable %s is not declared!", node.var_name);
+					createError(error);
+				}
+
+				if (strcmp(node.type, "int List") == 0 && tableitemHasValue(node.var_name, node.indexes) == 0) {
+					char* error = (char*) malloc(sizeof(char) * (strlen(node.name) + 255));
+					sprintf(error, "Error : The array has %s no value at specified indexes!", node.var_name);
+					createError(error);
+				}
 			}
 
 			$$ = node;
@@ -1189,8 +1213,6 @@ expression:	// var et const = node, binop = sous arbre
 			sprintf(code, "\n%s [shape=septagon label=\"%s\"];\n", nodeName, $1);
 
 			for (int i = 0; i < size; i++) {
-				addParent(list[i], &node);
-
 				char* codeLien = malloc(sizeof(char) * (strlen($1) + strlen(list[i]->name) + 40));
 				sprintf(codeLien, "%s -> %s\n", nodeName, list[i]->name);
 
@@ -1241,19 +1263,21 @@ liste_expressions :
 			int size = 0;
 			while (list[size] != NULL) size++;
 
-			list = realloc(list, (size + 2) * sizeof(CallTree *));
+			list = realloc(list, (size + 3) * sizeof(CallTree *));
 			CallTree* tmp = (CallTree*) malloc(sizeof(CallTree));
 			*tmp = $3;
 			list[size] = tmp;
+			list[size + 1] = NULL;
 
 			$$ = list;
 		}
 	| 	expression
 		{
-			CallTree** list = (CallTree**) calloc(1, sizeof(CallTree *));
+			CallTree** list = (CallTree**) calloc(2, sizeof(CallTree *));
 			CallTree* tmp = (CallTree*) malloc(sizeof(CallTree));
 			*tmp = $1;
 			list[0] = tmp;
+			list[1] = NULL;
 			$$ = list;
 		}
 	|	{ $$ = (CallTree**) calloc(1, sizeof(CallTree *)); }
@@ -1285,7 +1309,6 @@ condition :
 			free(nodeName);
 
 
-			addParent(&node, &condition_1);
 			$$ = node;
 		 }
 	|	condition binary_rel condition %prec REL
@@ -1320,9 +1343,6 @@ condition :
 			free(tmp2);
 			free(nodeName);
 
-
-			addParent(&node, &condition_1);
-			addParent(&node, &condition_2);
 			$$ = node;
 		}
 	|	'(' condition ')' { $$ = $2; }
@@ -1359,9 +1379,6 @@ condition :
 			free(tmp2);
 			free(nodeName);
 
-
-			addParent(&node, &condition_1);
-			addParent(&node, &condition_2);
 			$$ = node;
 		}
 ;

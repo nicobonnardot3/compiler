@@ -5,6 +5,6 @@ int loop(int a, int b) {
 }
 
 int main() {
-    loop(a, b, 23);
+    loop(1, 2, 23);
     return 0;
 }

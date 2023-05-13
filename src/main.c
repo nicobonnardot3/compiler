@@ -157,3 +157,8 @@ void printList(CallTree **list) {
     }
     printf("-------- End List --------\n");
 }
+
+void createError(char *error) {
+    yyerror(error);
+    exit(1);
+}

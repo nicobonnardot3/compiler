@@ -46,6 +46,7 @@ int updateListVar(char *listKey, int *indexes, int value);
 
 int symbolVal(char *str);
 int symbolhasValue(char *str);
+int symbolIsDeclared(char *str);
 int tableValue(char *str, int *indexes);
 int tableitemHasValue(char *str, int *indexes);
 unsigned long getIndex(HashTable *table, char *key);

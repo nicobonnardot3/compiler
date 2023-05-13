@@ -51,8 +51,9 @@ void addIndex(CallTree *callTree, int *indexes) {
     }
 
     int size = sizeof(indexes) / sizeof(sizeof(int));
-    callTree->indexes = (int *) calloc(size, sizeof(int));
+    callTree->indexes = (int *) calloc(size + 1, sizeof(int));
     memcpy(callTree->indexes, indexes, (size) * sizeof(int));
+    callTree->indexes[size] = NULL;
 }
 
 // ------------------ aux ------------------
@@ -63,9 +64,4 @@ void printTree(CallTree *callTree) {
     };
 
     printf("Name: %s, Value: %d, Indexes: n/a, Code: \"%s\"\n", callTree->name, callTree->value, callTree->code);
-
-    if (callTree->parent != NULL) {
-        printf("Parent: %s\n\t", callTree->parent->name);
-        printTree(callTree->parent);
-    }
 }

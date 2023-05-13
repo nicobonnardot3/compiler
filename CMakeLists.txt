@@ -65,15 +65,35 @@ set_tests_properties(tableaux_error PROPERTIES WILL_FAIL TRUE)
 
 add_test(NAME tableaux-multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/tableaux-multi.c)
 
-add_test(NAME my_tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab.c)
-add_test(NAME my_tableaux_multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tab-multi.c)
-add_test(NAME my_functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions.c)
+# my tests
 
-add_test(NAME my_function_not_exists_error COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/function-not-exists.c")
+# variables
+add_test(NAME my_vars COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/variables/variables.c")
+add_test(NAME my_vars_error_1 COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/variables/variables-error-1.c")
+add_test(NAME my_vars_error_2 COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/variables/variables-error-2.c")
+add_test(NAME my_vars_bloc_error_1 COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/variables/variables-bloc-error-1.c")
+add_test(NAME my_vars_bloc_error_2 COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/variables/variables-bloc-error-2.c")
+set_tests_properties(my_vars_error_1 PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(my_vars_error_2 PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(my_vars_bloc_error_1 PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(my_vars_bloc_error_2 PROPERTIES WILL_FAIL TRUE)
+
+# expressions
+add_test(NAME my_expr COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/expressions/expression.c)
+add_test(NAME my_expr_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/expressions/expression-error.c)
+set_tests_properties(my_expr_error PROPERTIES WILL_FAIL TRUE)
+
+# tableaux
+add_test(NAME my_tableaux COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tableaux/tab.c)
+add_test(NAME my_tableaux_multi COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/tableaux/tab-multi.c)
+
+# functions
+add_test(NAME my_functions COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions/functions.c)
+add_test(NAME my_function_not_exists_error COMMAND ${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/myTests/functions/function-not-exists.c")
+add_test(NAME my_function_too_many_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions/function-too-many-args.c)
+add_test(NAME my_function_too_few_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/functions/function-too-few-args.c)
 set_tests_properties(my_function_not_exists_error PROPERTIES WILL_FAIL TRUE)
-add_test(NAME my_function_too_many_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/function-too-many-args.c)
 set_tests_properties(my_function_too_many_args_error PROPERTIES WILL_FAIL TRUE)
-add_test(NAME my_function_too_few_args_error COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/myTests/function-too-few-args.c)
 set_tests_properties(my_function_too_few_args_error PROPERTIES WILL_FAIL TRUE)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

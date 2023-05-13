@@ -213,6 +213,18 @@ int symbolhasValue(char *str) {
     return 1;
 }
 
+int symbolIsDeclared(char *str) {
+    HashTable *table = findScope(str);
+    unsigned long index = getIndex(table, str);
+    if (index == -1) return 0;
+    while (table->items[index] != NULL) {
+        if (strcmp(table->items[index]->key, str) == 0) return 1;
+        index++;
+    }
+    return 0;
+}
+
+
 // Returns the value of a list item in all scopes.
 int tableValue(char *str, int *indexes) {
     HashTable *table = findScope(str);
