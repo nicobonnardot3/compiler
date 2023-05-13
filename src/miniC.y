@@ -15,7 +15,6 @@ extern struct FunctionHashTable* functionHashTable;
 extern char* outputFile;
 extern struct FunctionError* functionError;
 
-
 // ----- lex/yacc -----
 extern void yyerror (char const *s);
 extern int yylex();
