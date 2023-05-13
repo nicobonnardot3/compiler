@@ -16,7 +16,6 @@ make
 
 ## Usage
 ```bash
-# In the src directory:
 ./minigcc <input file> [output file]
 ```
 
