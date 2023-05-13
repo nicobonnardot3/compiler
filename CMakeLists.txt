@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(minigcc)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_C_STANDARD 23)
 
 enable_testing()
 include_directories(src)
@@ -13,11 +13,11 @@ SET(BisonOutput ${CMAKE_SOURCE_DIR}/src/y.tab.c)
 IF(BISON_FOUND)
     ADD_CUSTOM_COMMAND(
             OUTPUT ${BisonOutput}
-            COMMAND ${BISON_EXECUTABLE}
+            COMMAND ${BISON_EXECUTABLE} -Wno-yacc -Wno-conflicts-sr
             --defines=${CMAKE_SOURCE_DIR}/src/y.tab.h
             --output=${BisonOutput}
             ${CMAKE_SOURCE_DIR}/src/miniC.y
-            COMMENT "Generating yacc parser"
+            COMMENT "Building yacc parser"
     )
 ENDIF()
 
@@ -29,11 +29,11 @@ IF(FLEX_FOUND)
             COMMAND ${FLEX_EXECUTABLE}
             --outfile=${FlexOutput}
             ${CMAKE_SOURCE_DIR}/src/ANSI-C.l
-            COMMENT "Generating lex scanner"
+            COMMENT "Building lex scanner"
     )
 ENDIF()
 
-set (CMAKE_C_FLAGS "-Wno-return-type -D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasynchronous-unwind-tables -fstack-clash-protection -O2 -Wall")
+set (CMAKE_C_FLAGS "-Wall -Wno-return-type -Wno-unused-function -Wno-int-conversion -Wformat -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -O2")
 
 add_executable("${PROJECT_NAME}"
         src/main.c
