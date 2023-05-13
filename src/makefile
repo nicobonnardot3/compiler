@@ -1,5 +1,5 @@
 CFLAGS=-D_FORTIFY_SOURCE=2 -Wno-int-conversion -Wformat -Wunused-function -fasynchronous-unwind-tables -fstack-clash-protection -O2 -Wall
-DEBUG_FLAGS=-g 
+DEBUG_FLAGS=-g
 DEBUG_ENV=LSAN_OPTION=verbosity=1:log_threads=1
 # -fsanitize=address
 FILES=main.c callTree/CallTree.c hashTable/HashTable.c functionHashTable/functionHashTable.c y.tab.c lex.yy.c

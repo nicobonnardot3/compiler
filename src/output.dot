@@ -88,53 +88,146 @@ node_return_node_var_a_24_25 -> node_var_a_24
 node_bloc_27 -> node_return_node_var_a_24_25
 
 
-node_main_41 [label="main, int" shape=invtrapezium color=blue];
-node_bloc_42 [shape=ellipse label="BLOC"];
-node_main_41 -> node_bloc_42
+node_fact_37 [label="fact, int" shape=invtrapezium color=blue];
+node_bloc_38 [shape=ellipse label="BLOC"];
+node_fact_37 -> node_bloc_38
 
-node_affect_node_var_a_29_node_10_30_30 [label=":=" shape=ellipse];
+node_if_node_comp_28_30 [shape=diamond label="IF"];
 
-node_var_a_29 [shape=ellipse label="a"];
-node_affect_node_var_a_29_node_10_30_30 -> node_var_a_29
+node_comp_28 [shape=ellipse label="<"];
 
-node_10_30 [shape=ellipse label="10"];
-node_affect_node_var_a_29_node_10_30_30 -> node_10_30
+node_var_n_27 [shape=ellipse label="n"];
+node_comp_28 -> node_var_n_27;
 
-node_bloc_42 -> node_affect_node_var_a_29_node_10_30_30
+node_1_28 [shape=ellipse label="1"];
+node_comp_28 -> node_1_28;
+node_if_node_comp_28_30 -> node_comp_28
 
-node_affect_node_var_b_31_node_2_32_32 [label=":=" shape=ellipse];
+node_return_node_1_29_29 [shape=trapezium label="RETURN" color=blue];
 
-node_var_b_31 [shape=ellipse label="b"];
-node_affect_node_var_b_31_node_2_32_32 -> node_var_b_31
+node_1_29 [shape=ellipse label="1"];
+node_return_node_1_29_29 -> node_1_29
+node_if_node_comp_28_30 -> node_return_node_1_29_29
 
-node_2_32 [shape=ellipse label="2"];
-node_affect_node_var_b_31_node_2_32_32 -> node_2_32
+node_bloc_38 -> node_if_node_comp_28_30
 
-node_bloc_42 -> node_affect_node_var_b_31_node_2_32_32
+node_return_node_expr_35_36 [shape=trapezium label="RETURN" color=blue];
 
-node_return_node_expr_39_40 [shape=trapezium label="RETURN" color=blue];
+node_expr_35 [shape=ellipse label="*"];
 
-node_expr_39 [shape=ellipse label="+"];
+node_var_n_31 [shape=ellipse label="n"];
+node_expr_35 -> node_var_n_31
 
-node_appel_aux_35 [shape=septagon label="aux"];
+node_appel_fact_34 [shape=septagon label="fact"];
 
-node_var_a_33 [shape=ellipse label="a"];
-node_appel_aux_35 -> node_var_a_33
+node_expr_33 [shape=ellipse label="-"];
 
-node_var_b_34 [shape=ellipse label="b"];
-node_appel_aux_35 -> node_var_b_34
-node_expr_39 -> node_appel_aux_35
+node_var_n_32 [shape=ellipse label="n"];
+node_expr_33 -> node_var_n_32
 
-node_appel_loop_38 [shape=septagon label="loop"];
+node_1_33 [shape=ellipse label="1"];
+node_expr_33 -> node_1_33
+node_appel_fact_34 -> node_expr_33
+node_expr_35 -> node_appel_fact_34
+node_return_node_expr_35_36 -> node_expr_35
 
-node_var_a_36 [shape=ellipse label="a"];
-node_appel_loop_38 -> node_var_a_36
+node_bloc_38 -> node_return_node_expr_35_36
 
-node_var_b_37 [shape=ellipse label="b"];
-node_appel_loop_38 -> node_var_b_37
-node_expr_39 -> node_appel_loop_38
-node_return_node_expr_39_40 -> node_expr_39
 
-node_bloc_42 -> node_return_node_expr_39_40
+node_main_62 [label="main, int" shape=invtrapezium color=blue];
+node_bloc_63 [shape=ellipse label="BLOC"];
+node_main_62 -> node_bloc_63
+
+node_affect_node_var_a_40_node_10_41_41 [label=":=" shape=ellipse];
+
+node_var_a_40 [shape=ellipse label="a"];
+node_affect_node_var_a_40_node_10_41_41 -> node_var_a_40
+
+node_10_41 [shape=ellipse label="10"];
+node_affect_node_var_a_40_node_10_41_41 -> node_10_41
+
+node_bloc_63 -> node_affect_node_var_a_40_node_10_41_41
+
+node_affect_node_var_b_42_node_2_43_43 [label=":=" shape=ellipse];
+
+node_var_b_42 [shape=ellipse label="b"];
+node_affect_node_var_b_42_node_2_43_43 -> node_var_b_42
+
+node_2_43 [shape=ellipse label="2"];
+node_affect_node_var_b_42_node_2_43_43 -> node_2_43
+
+node_bloc_63 -> node_affect_node_var_b_42_node_2_43_43
+
+node_appel_printd_47 [shape=septagon label="printd"];
+
+node_appel_aux_46 [shape=septagon label="aux"];
+
+node_var_a_44 [shape=ellipse label="a"];
+node_appel_aux_46 -> node_var_a_44
+
+node_var_b_45 [shape=ellipse label="b"];
+node_appel_aux_46 -> node_var_b_45
+node_appel_printd_47 -> node_appel_aux_46
+
+node_bloc_63 -> node_appel_printd_47
+
+node_appel_printd_51 [shape=septagon label="printd"];
+
+node_appel_loop_50 [shape=septagon label="loop"];
+
+node_var_a_48 [shape=ellipse label="a"];
+node_appel_loop_50 -> node_var_a_48
+
+node_var_b_49 [shape=ellipse label="b"];
+node_appel_loop_50 -> node_var_b_49
+node_appel_printd_51 -> node_appel_loop_50
+
+node_bloc_63 -> node_appel_printd_51
+
+node_return_node_expr_60_61 [shape=trapezium label="RETURN" color=blue];
+
+node_expr_60 [shape=ellipse label="+"];
+
+node_expr_58 [shape=ellipse label="+"];
+
+node_appel_aux_54 [shape=septagon label="aux"];
+
+node_var_a_52 [shape=ellipse label="a"];
+node_appel_aux_54 -> node_var_a_52
+
+node_var_b_53 [shape=ellipse label="b"];
+node_appel_aux_54 -> node_var_b_53
+node_expr_58 -> node_appel_aux_54
+
+node_appel_loop_57 [shape=septagon label="loop"];
+
+node_var_a_55 [shape=ellipse label="a"];
+node_appel_loop_57 -> node_var_a_55
+
+node_var_b_56 [shape=ellipse label="b"];
+node_appel_loop_57 -> node_var_b_56
+node_expr_58 -> node_appel_loop_57
+node_expr_60 -> node_expr_58
+
+node_appel_fact_59 [shape=septagon label="fact"];
+
+node_5_59 [shape=ellipse label="5"];
+node_appel_fact_59 -> node_5_59
+
+node_7_59 [shape=ellipse label="7"];
+node_appel_fact_59 -> node_7_59
+node_expr_60 -> node_appel_fact_59
+node_return_node_expr_60_61 -> node_expr_60
+
+node_bloc_63 -> node_return_node_expr_60_61
+
+
+node_test_64 [label="test, int" shape=invtrapezium color=blue];
+node_bloc_65 [shape=ellipse label="BLOC"];
+node_test_64 -> node_bloc_65
+
+node_appel_main_63 [shape=septagon label="main"];
+
+node_bloc_65 -> node_appel_main_63
 
 }

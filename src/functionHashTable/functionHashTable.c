@@ -66,19 +66,55 @@ void addFunction(FunctionHtItem *item) {
 }
 
 int verifyParams(FunctionHtItem *function, CallTree **nodes) {
+    const int TOO_MANY_PARAMS = 1;
+    const int MISSING_PARAMS = 2;
+    const int WRONG_TYPE_BASE = 3;
+
     if (function == NULL) return 1;
+
+    // get size of params
+    int paramSize = 0;
+    FunctionParam *param = function->params;
+    while (param != NULL) {
+        param = param->next;
+        paramSize++;
+    }
+
+    if (paramSize == 0 && nodes == NULL) return 0;
+    if (paramSize != 0 && nodes == NULL) return MISSING_PARAMS;
+
+    printf("paramSize: %d\n", paramSize);
 
     int size = 0;
     while (nodes[size] != NULL) size++;
 
+    printf("size: %d\n", size);
+
+
     FunctionParam *params = function->params;
-    for (int i = 0; i < size; i++) {
-        if (params == NULL) return 1;
-        if (strcmp(params->type, nodes[i]->type) != 0) return 1;
+    int i = 0;
+    while (params != NULL) {
+        if (nodes[i] == NULL) return MISSING_PARAMS;
+        printf("node: %s\n", nodes[i]->name);
+        printf("param: %s\n", params->name);
+        if (strcmp(params->type, nodes[i]->type) != 0) return (WRONG_TYPE_BASE + i);
         params = params->next;
+        i++;
     }
 
-    if (params != NULL) return 1;
+    // FunctionParam *params = function->params;
+    // int i = 0;
+    // while (i < size) {
+    //     printf("%s\n", nodes[i]->name);
+    //     if (params == NULL) return 2;
+    //     if (nodes[i] == NULL) return 1;
+
+    //     if (strcmp(params->type, nodes[i]->type) != 0) return (3 + i);
+    //     params = params->next;
+    //     i++;
+    // }
+
+    if (nodes[i] != NULL) return TOO_MANY_PARAMS;
 
     return 0;
 }

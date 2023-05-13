@@ -16,6 +16,7 @@ FunctionHashTable *functionHashTable;
 
 int *nodeIndex;
 char *outputFile;
+FunctionError *functionError;
 
 // ----- lex/yacc -----
 extern FILE *yyin;
@@ -32,6 +33,13 @@ void printList(CallTree **list);
 
 int main(int argc, char **argv) {
     nodeIndex = malloc(sizeof(int));
+    functionError = (FunctionError *) malloc(sizeof(FunctionError));
+
+    functionError->message = (char *) malloc(sizeof(char) * 100);
+    functionError->name = (char *) malloc(sizeof(char) * 100);
+
+    strcpy(functionError->message, "");
+    strcpy(functionError->name, "");
 
     *nodeIndex = 1;
 

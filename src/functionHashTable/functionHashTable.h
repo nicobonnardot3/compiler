@@ -18,6 +18,13 @@ typedef struct FunctionHashTable {
     int count;
 } FunctionHashTable;
 
+typedef struct FunctionError {
+    char *message;
+    char *name;
+    CallTree **nodes;
+    struct FunctionError *prev;
+} FunctionError;
+
 unsigned long functionHashFunction(char *str);
 FunctionHashTable createFunctionHashTable();
 FunctionHtItem createFunctionHtItem(char *key, char *type, FunctionParam *params);
