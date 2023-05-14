@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
 
     processParsing();
 
-    printf("Compiled successfully\n");
+    printf("\033[1;32mCompiled successfully\n");
 }
 
 int processParsing() { return yyparse(); }
@@ -155,7 +155,7 @@ int parseOperation(int a, int b, char *op) {
 void yyerror(char const *s) {
     extern int yylineno;
     extern int column;
-    fprintf(stderr, "%s: \n\t%s:%d:%d", s, inputfile, yylineno, column);
+    fprintf(stderr, "\033[1;31m%s: \e[0;31m\n\t%s:%d:%d", s, inputfile, yylineno, column);
     exit(1);
 }
 
