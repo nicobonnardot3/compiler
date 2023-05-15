@@ -85,9 +85,7 @@ void parseArgs(int argc, char **argv) {
     else
         outputFile = "output.dot";
 
-
-    inputfile = (char *) malloc(sizeof(char) * (strlen(argv[1]) + 1));
-    strcpy(inputfile, argv[1]);
+    inputfile = argv[1];
 }
 
 
