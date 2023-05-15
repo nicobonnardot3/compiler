@@ -50,7 +50,7 @@ IS                      (u|U|l|L)*
 "return"                { column += 6; return RETURN; }
 "extern"                { column += 6; return EXTERN; }
 
-{L}({L}|{D})*           {   
+{L}({L}|{D})*           {
                             column += strlen(yytext);
                             yylval.id = strdup(yytext);
                             return (IDENTIFICATEUR);
@@ -59,9 +59,9 @@ IS                      (u|U|l|L)*
                             column += strlen(yytext); 
                             yylval.num = atoi(yytext); 
                             return CONSTANTE; 
-                        } // HEXA DECIMAL
-0{D}+{IS}?              { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // DECIMAL
-{D}+{IS}?               { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; } // INT
+                        }
+0{D}+{IS}?              { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; }
+{D}+{IS}?               { column += strlen(yytext); yylval.num = atoi(yytext); return CONSTANTE; }
 
 "+"                     { column += 1; return PLUS; }
 "-"                     { column += 1; return MOINS; }
@@ -77,15 +77,12 @@ IS                      (u|U|l|L)*
 
 "<"                     { column += 1; return LT; }
 ">"                     { column += 1; return GT; }
-"<="                    { column += 2; return LT; }
-">="                    { column += 2; return GT; }
+"<="                    { column += 2; return LEQ; }
+">="                    { column += 2; return GEQ; }
 "=="                    { column += 2; return EQ; }
 "!="                    { column += 2; return NEQ; }
 " "                     { column += 1; }
-"\t"                    { column += 4; }
-
-
-
+"\t"                    { column += 1; }
 "\n"                    {  column = 0; }
 
 "/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/  { column = countColumns(yytext); }

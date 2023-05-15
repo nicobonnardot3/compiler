@@ -52,7 +52,7 @@ Mkfile.old
 dkms.conf
 
 
-parser.out
+minigcc
 lex.yy.c
 y.tab.c
 y.tab.h

@@ -11,4 +11,3 @@ CallTree createCallTree(char *name);
 void addValue(CallTree *callTree, int value);
 void addCode(CallTree *callTree, char *code);
 void addIndex(CallTree *callTree, int *indexes);
-void printTree(CallTree *callTree);

@@ -51,19 +51,8 @@ int tableValue(char *str, int *indexes);
 int tableitemHasValue(char *str, int *indexes);
 unsigned long getIndex(HashTable *table, char *key);
 
-// --------- Free Functions ---------
-
-void free_var(Variable *var);
-void free_item(HtItem *item);
-void free_table(HashTable *table);
-
 // --------- Scope Functions ---------
 
 HashTable *findScope(char *str);
 int inCurrentScope(char *str);
 void deleteScope();
-
-// --------- Print Functions ---------
-
-void print_table(HashTable *table);
-void print_item(HtItem *item);

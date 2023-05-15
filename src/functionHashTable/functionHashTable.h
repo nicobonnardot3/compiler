@@ -21,6 +21,8 @@ typedef struct FunctionHashTable {
 typedef struct FunctionError {
     char *message;
     char *name;
+    int line;
+    int column;
     CallTree **nodes;
     struct FunctionError *prev;
 } FunctionError;

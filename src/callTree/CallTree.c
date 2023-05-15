@@ -55,13 +55,3 @@ void addIndex(CallTree *callTree, int *indexes) {
     memcpy(callTree->indexes, indexes, (size) * sizeof(int));
     callTree->indexes[size] = NULL;
 }
-
-// ------------------ aux ------------------
-void printTree(CallTree *callTree) {
-    if (callTree == NULL) {
-        printf("Call Tree is NULL\n");
-        return;
-    };
-
-    printf("Name: %s, Value: %d, Indexes: n/a, Code: \"%s\"\n", callTree->name, callTree->value, callTree->code);
-}

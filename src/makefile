@@ -1,14 +1,14 @@
-CFLAGS=-ll -Wall -Wno-return-type -Wno-unused-function -Wno-int-conversion -Wformat -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -O2
+CFLAGS=-Wall -Wno-return-type -Wno-unused-function -Wno-int-conversion -Wformat -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -O2
 DEBUG_FLAGS=-g
 # -fsanitize=address
 DEBUG_ENV=LSAN_OPTION=verbosity=1:log_threads=1
 FILES=main.c callTree/CallTree.c hashTable/HashTable.c functionHashTable/functionHashTable.c y.tab.c lex.yy.c
 
-parser.out: clean lex.yy.c y.tab.c
-	gcc $(CFLAGS) -o minigcc $(FILES)
+parser.out: clean lex.yy.c y.tab.c 
+	gcc $(CFLAGS) -o minigcc $(FILES) -ll
 
 debug: clean lex.yy.c y.tab.c
-	$(DEBUG_ENV); gcc $(CFLAGS) $(DEBUG_FLAGS) -o minigcc $(FILES)
+	$(DEBUG_ENV); gcc $(CFLAGS) $(DEBUG_FLAGS) -o minigcc $(FILES) -ll
 
 lex.yy.c: y.tab.c ANSI-C.l
 	lex -o lex.yy.c ANSI-C.l

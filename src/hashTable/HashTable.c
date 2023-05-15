@@ -284,36 +284,6 @@ unsigned long getIndex(HashTable *table, char *key) {
     return index;
 }
 
-// --------- Free Functions ---------
-// Frees a variable.
-void free_var(Variable *var) {
-    if (var->value != NULL) free(var->value);
-    free(var->size);
-    free(var->type);
-    free(var);
-}
-
-// Frees an item.
-void free_item(HtItem *item) {
-    // Frees an item.
-    free(item->key);
-    if (item->var != NULL) free_var(item->var);
-    free(item);
-}
-
-// Frees a HashTable.
-void free_table(HashTable *table) {
-    for (int i = 0; i < table->size; i++) {
-        HtItem *item = table->items[i];
-
-        if (item != NULL) free_item(item);
-    }
-
-    free(table->items);
-    free(table);
-}
-
-
 // --------- Scope Functions ---------
 
 // Finds the scope of a variable.
@@ -330,7 +300,7 @@ HashTable *findScope(char *str) {
     return NULL;
 }
 
-
+// Check if a variable exists in the current scope.
 int inCurrentScope(char *str) {
     HashTable *table = hashTableList->currentScope;
     unsigned long index = getIndex(table, str);
@@ -338,6 +308,7 @@ int inCurrentScope(char *str) {
     if (currentItem == NULL) return 0;
     return 1;
 }
+
 // Deletes the current scope.
 void deleteScope() {
     if (hashTableList->currentScope->prev != NULL) {
@@ -346,59 +317,9 @@ void deleteScope() {
     }
 }
 
-// --------- Print Functions ---------
-// Prints the given table
-void print_table(HashTable *table) {
-    printf("------------------- Hash Table -------------------\n");
+// --------- Aux Functions ---------
 
-    printf("Size: %d, Count: %d \n", table->size, table->count);
-
-    for (int i = 0; i < table->size; i++) {
-        HtItem *item = table->items[i];
-        if (item == NULL) continue;
-
-        Variable *var = item->var;
-        int value = var->value;
-        if (strcmp(var->type, "int") == 0)
-            printf("Index: %d, Key: %s, type: %s, value: %d\n", i, item->key, var->type, value);
-        else
-            print_item(item);
-    }
-
-    printf("--------------------------------------------------\n");
-}
-
-// Prints the given item
-void print_item(HtItem *item) {
-    if (item == NULL) {
-        printf("item is NULL\n");
-        return;
-    }
-
-    Variable *var = item->var;
-    if (var == NULL) {
-        printf("Item exists but isn't initialized");
-        return;
-    }
-
-    if (strcmp(var->type, "int") == 0) {
-        int *value = var->value;
-        printf("----------------- item ----------------- \n   key: %s\n   value: "
-               "%d\n----------------------------------------\n",
-               item->key, *(value));
-        return;
-    }
-    int size = var->size / sizeof(int);
-    int *list = var->value;
-    printf("----------------- table item -----------------\n");
-    printf("Key: %s, size: %d\n", item->key, size);
-    for (int i = 0; i < size; i++) printf("Index: %d, value: %d\n", i, *(list + i));
-
-    printf("----------------------------------------\n");
-}
-
-
-// calculate the index of an item in a multidimensional array
+// Calculate the index of an item in a multidimensional array
 int calculateIndex(int *sizes, int *indexes) {
     if (indexes == NULL) return -1;
     int index = 0;

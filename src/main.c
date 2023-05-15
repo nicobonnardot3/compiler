@@ -5,13 +5,7 @@
 #include <string.h>
 
 // ----- Vars -----
-CallTree *tree;
-CallTree **declarationTree;
-CallTree **functionTree;
-
-
 HashTableList *hashTableList;
-HashTable varHashTable;
 FunctionHashTable *functionHashTable;
 
 int *nodeIndex;
@@ -27,32 +21,15 @@ void yyerror(char const *s);
 // ----- Utils -----
 int processParsing();
 int parseOperation(int a, int b, char *op);
-void extractTableVar(char *str, char *input);
-void extractVarIndex(char *str, int *index, char **src);
-void printList(CallTree **list);
+void parseArgs(int argc, char **argv);
 
 
 int main(int argc, char **argv) {
+    // ----- Parse args -----
+    parseArgs(argc, argv);
 
-    if (argc == 1) {
-        printf("Error: no file specified\n");
-        printf("Usage: ./minigcc <input file> [output file]\n");
-        printf("Example: ./minigcc test.c output.dot\n");
-        return 1;
-    }
-
-    inputfile = (char *) malloc(sizeof(char) * (strlen(argv[1]) + 1));
-    strcpy(inputfile, argv[1]);
-
+    // ----- Init vars -----
     nodeIndex = malloc(sizeof(int));
-    functionError = (FunctionError *) malloc(sizeof(FunctionError));
-
-    functionError->message = (char *) malloc(sizeof(char) * 100);
-    functionError->name = (char *) malloc(sizeof(char) * 100);
-
-    strcpy(functionError->message, "");
-    strcpy(functionError->name, "");
-
     *nodeIndex = 1;
 
     HashTable *varHashTable = (HashTable *) malloc(sizeof(HashTable));
@@ -61,17 +38,44 @@ int main(int argc, char **argv) {
 
     *varHashTable = create_table(50000);
     varHashTable->prev = NULL;
-
     hashTableList = (HashTableList *) malloc(sizeof(HashTableList));
     hashTableList->currentScope = varHashTable;
     hashTableList->size = 1;
 
+    processParsing();
+
+    printf("\033[1;32mCompiled successfully!\033[0m\n");
+}
+
+int processParsing() { return yyparse(); }
+
+void printfHelpMessage() {
+    printf("Usage: ./minigcc <input file> [output file]\n");
+    printf("\tOutput file defaults to output.dot\n");
+    printf("\tExample: ./minigcc test.c out.dot\n");
+}
+
+void parseArgs(int argc, char **argv) {
+    if (argc == 1) {
+        printf("\033[1;31mError: no input file specified\033[0m\n");
+        printfHelpMessage();
+        exit(1);
+    }
+
     if (argc > 1) {
+        if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+            printfHelpMessage();
+            exit(0);
+        } else if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
+            printf("minigcc version 1.0.0\n");
+            exit(0);
+        }
+
         FILE *file = fopen(argv[1], "r");
 
         if (!file) {
-            printf("Error: file not found\n");
-            return 1;
+            printf("\033[1;31mError: file not found\033[0m\n");
+            exit(1);
         }
 
         yyin = file;
@@ -85,53 +89,10 @@ int main(int argc, char **argv) {
         outputFile = "output.dot";
     }
 
-    processParsing();
-
-    printf("\033[1;32mCompiled successfully\n");
+    inputfile = (char *) malloc(sizeof(char) * (strlen(argv[1]) + 1));
+    strcpy(inputfile, argv[1]);
 }
 
-int processParsing() { return yyparse(); }
-
-char *extractVarName(char *str) {
-    int i = 0;
-    int size = strlen(str);
-    if (size < 2) return str;
-    while (i < size &&
-           (str[i] != '=' && str[i] != ' ' && str[i] != ';' && str[i] != '[' && str[i] != ']' && str[i] != '\0' &&
-            str[i] != ',' && str[i] != '(' && str[i] != ')' && str[i] != '{' && str[i] != '}' && str[i] != '+' &&
-            str[i] != '-' && str[i] != '*' && str[i] != '/' && str[i] != '&' && str[i] != '|' && str[i] != '<' &&
-            str[i] != '>' && str[i] != '!' && str[i] != '=' && str[i] != '\n')) {
-        i++;
-    }
-
-
-    char *newStr = (char *) malloc(sizeof(char) * (i + 2));
-    strncpy(newStr, str, i);
-
-    newStr[i] = '\0';
-    return newStr;
-}
-
-void extractTableVar(char *str, char *input) {
-    int i = 0;
-    while (input[i] != '[') i++;
-
-    strncpy(str, input, i);
-}
-
-void extractVarIndex(char *str, int *index, char **src) {
-    char newSrc[255];
-    printf("src: %s\n", *src);
-    strcpy(newSrc, *src);
-
-    printf("newSrc = %s", newSrc);
-    strcpy(str, strtok(newSrc, ","));
-}
-
-char *removeUnwantedChar(char *str) {
-    if (str[strlen(str) - 1] == ';' || str[strlen(str) - 1] == ',') { str[strlen(str) - 1] = '\0'; }
-    return str;
-}
 
 int parseOperation(int a, int b, char *op) {
     if (strcmp("+", op) == 0) return a + b;
@@ -155,19 +116,15 @@ int parseOperation(int a, int b, char *op) {
 void yyerror(char const *s) {
     extern int yylineno;
     extern int column;
-    fprintf(stderr, "\033[1;31m%s: \e[0;31m\n\t%s:%d:%d", s, inputfile, yylineno, column);
+    fprintf(stderr, "\033[1;31m%s: \e[0;31m\n\tat %s:%d:%d\n", s, inputfile, yylineno, column);
+    fclose(yyin);
     exit(1);
 }
 
-void printList(CallTree **list) {
-    printf("-------- List --------\n");
-    printf("List size: %lu\n", sizeof(list));
-    int i = 0;
-    while (list[i] != NULL) {
-        printTree(list[i]);
-        i++;
-    }
-    printf("-------- End List --------\n");
-}
-
 void createError(char *error) { yyerror(error); }
+
+void createFunctionError(char *error, int lineno, int column) {
+    fprintf(stderr, "\033[1;31m%s: \e[0;31m\n\tat %s:%d:%d\n", error, inputfile, lineno, column);
+    fclose(yyin);
+    exit(1);
+}
