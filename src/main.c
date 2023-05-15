@@ -25,7 +25,6 @@ void parseArgs(int argc, char **argv);
 
 
 int main(int argc, char **argv) {
-    // ----- Parse args -----
     parseArgs(argc, argv);
 
     // ----- Init vars -----
