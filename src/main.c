@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
     processParsing();
 
     printf("\033[1;32mCompiled successfully!\033[0m\n");
+    return 0;
 }
 
 int processParsing() { return yyparse(); }
