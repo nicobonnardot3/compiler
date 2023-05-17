@@ -19,7 +19,6 @@ int yyparse();
 void yyerror(char const *s);
 
 // ----- Utils -----
-int processParsing();
 int parseOperation(int a, int b, char *op);
 void parseArgs(int argc, char **argv);
 
@@ -41,13 +40,11 @@ int main(int argc, char **argv) {
     hashTableList->currentScope = varHashTable;
     hashTableList->size = 1;
 
-    processParsing();
+    yyparse();
 
     printf("\033[1;32mCompiled successfully!\033[0m\n");
     return 0;
 }
-
-int processParsing() { return yyparse(); }
 
 void printfHelpMessage() {
     printf("Usage: ./minigcc <input file> [output file]\n");
@@ -72,7 +69,6 @@ void parseArgs(int argc, char **argv) {
         }
 
         FILE *file = fopen(argv[1], "r");
-
         if (!file) {
             printf("\033[1;31mError: file not found\033[0m\n");
             exit(1);
@@ -94,11 +90,7 @@ int parseOperation(int a, int b, char *op) {
     if (strcmp("-", op) == 0) return a - b;
     if (strcmp("*", op) == 0) return a * b;
     if (strcmp("/", op) == 0) {
-        if (b == 0) {
-            char *error = (char *) malloc(sizeof(char) * 40);
-            sprintf(error, "Error : divide by zero");
-            yyerror(error);
-        }
+        if (b == 0) { yyerror("Error : divide by zero"); }
         return a / b;
     }
     if (strcmp("<<", op) == 0) return a << b;

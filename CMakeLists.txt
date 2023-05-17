@@ -61,6 +61,7 @@ add_test(NAME mul COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/mul.c ${TEST
 add_test(NAME div COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/div.c ${TEST_OUT_DIR_DEFAULT}/div.dot)
 add_test(NAME expr COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/expr.c ${TEST_OUT_DIR_DEFAULT}/expr.dot)
 add_test(NAME cond COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/cond.c ${TEST_OUT_DIR_DEFAULT}/cond.dot)
+add_test(NAME switch COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/switch.c ${TEST_OUT_DIR_DEFAULT}/switch.dot)
 add_test(NAME loops COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/loops.c ${TEST_OUT_DIR_DEFAULT}/loops.dot)
 add_test(NAME compteur COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/compteur.c ${TEST_OUT_DIR_DEFAULT}/compteur.dot)
 add_test(NAME break COMMAND ${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/tests/break.c ${TEST_OUT_DIR_DEFAULT}/break.dot)

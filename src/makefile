@@ -4,10 +4,10 @@ DEBUG_FLAGS=-g
 DEBUG_ENV=LSAN_OPTION=verbosity=1:log_threads=1
 FILES=main.c callTree/CallTree.c hashTable/HashTable.c functionHashTable/functionHashTable.c y.tab.c lex.yy.c
 
-parser.out: clean lex.yy.c y.tab.c 
+parser.out: lex.yy.c y.tab.c 
 	gcc $(CFLAGS) -o minigcc $(FILES) -ll
 
-debug: clean lex.yy.c y.tab.c
+debug: lex.yy.c y.tab.c
 	$(DEBUG_ENV); gcc $(CFLAGS) $(DEBUG_FLAGS) -o minigcc $(FILES) -ll
 
 lex.yy.c: y.tab.c ANSI-C.l

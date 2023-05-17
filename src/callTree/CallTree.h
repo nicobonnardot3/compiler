@@ -1,8 +1,8 @@
 typedef struct CallTree {
     char *name;
     char *var_name;
-    char *type;// int, void
-    int value; // int if var or const, NULL otherwise
+    char *type;
+    int value;
     int *indexes;
     char *code;
 } CallTree;

@@ -75,8 +75,8 @@ programme:
 		FILE *fptr;
 		fptr = fopen(outputFile, "w+");
 		if(fptr == NULL) {
-			printf("Error!");
-			exit(1);
+			printf("\033[1;32mFile error!\033[0m\n");
+			exit(2);
 		}
 
 		fprintf(fptr, "digraph Programme {\n");
@@ -250,9 +250,9 @@ liste_indexes:
 				$$ = indexes;
 			}
 ;
-fonction :
+fonction:
 		type IDENTIFICATEUR '(' liste_params ')' '{' liste_declarations liste_instructions '}'
-			{ // sous Arbre abstrait, chaque instruction -> fils
+			{
 				char* type = $1;
 				char* name = $2;
 
@@ -360,35 +360,35 @@ fonction :
 				$$ = node;
 			}
 	|	EXTERN type IDENTIFICATEUR '(' liste_params ')' ';'
-		{
-			char* type = $2;
-			char* name = $3;
+			{
+				char* type = $2;
+				char* name = $3;
 
-			char filteredName[255] = "";
-			strcpy(filteredName, name);
-			strtok(filteredName, "(");
-			
-			char* nodeId = (char*) malloc(sizeof(char) * (strlen(filteredName) + strlen(type) + 20));
-			sprintf(nodeId, "node_%s_%d", filteredName, *nodeIndex);
-			*nodeIndex = *nodeIndex + 1;
+				char filteredName[255] = "";
+				strcpy(filteredName, name);
+				strtok(filteredName, "(");
+				
+				char* nodeId = (char*) malloc(sizeof(char) * (strlen(filteredName) + strlen(type) + 20));
+				sprintf(nodeId, "node_%s_%d", filteredName, *nodeIndex);
+				*nodeIndex = *nodeIndex + 1;
 
-			CallTree node = createCallTree(nodeId);
+				CallTree node = createCallTree(nodeId);
 
-			char* nodeCode = (char*) malloc(sizeof(char) * (strlen(nodeId) + strlen(filteredName) + 60));
-			sprintf(nodeCode, "\n\t%s [label=\"%s\" shape=polygon];\n", nodeId, filteredName);
+				char* nodeCode = (char*) malloc(sizeof(char) * (strlen(nodeId) + strlen(filteredName) + 60));
+				sprintf(nodeCode, "\n\t%s [label=\"%s, %s\" shape=polygon];\n", nodeId, filteredName, type);
 
-			node.type = type;
+				node.type = type;
 
-			addCode(&node, nodeCode);
+				addCode(&node, nodeCode);
 
-			free(nodeId);
-			free(nodeCode);
+				free(nodeId);
+				free(nodeCode);
 
-			FunctionHtItem *item = (FunctionHtItem*) malloc(sizeof(FunctionHtItem));
-			*item = createFunctionHtItem(name, $2, $5);
-			addFunction(item);
+				FunctionHtItem *item = (FunctionHtItem*) malloc(sizeof(FunctionHtItem));
+				*item = createFunctionHtItem(name, $2, $5);
+				addFunction(item);
 
-			FunctionError *tmpFunctionError = functionError;
+				FunctionError *tmpFunctionError = functionError;
 				while (tmpFunctionError != NULL) {
 					if (strcmp(tmpFunctionError->name, name) == 0) {
 						CallTree** nodes = tmpFunctionError->nodes;
@@ -433,10 +433,8 @@ fonction :
 				}
 
 				functionError = NULL;
-
-
-			$$ = node;
-		}
+				$$ = node;
+			}
 ;
 type :
 		VOID { $$ = "void"; }
@@ -511,7 +509,6 @@ iteration :
 			CallTree condition = $5;
 			CallTree affectation2 = $7;
 			CallTree instruction = $9;
-
 
 			char* nodeName = (char*) malloc(sizeof(char) * (strlen(affectation1.name) + strlen(condition.name) + strlen(affectation2.name) + 40));
 			sprintf(nodeName, "node_for_%s_%s_%s_%d", affectation1.name, condition.name, affectation2.name, *nodeIndex);
@@ -753,7 +750,6 @@ selection :
 			free(nodeName);
 			free(codeLien);
 
-			
 			$$ = node;
 		}
 ;
@@ -823,12 +819,12 @@ saut :
 			$$ = node;
 		}
 ;
-affectation : // sous-arbres : := -> nom_var, := -> EXPR
+affectation :
 	variable '=' expression
 		{
 			CallTree var = $1;
 			CallTree expr = $3;
-      
+
 			if (findScope(var.var_name) == NULL) {
 				char* error = malloc(sizeof(char) * (strlen(var.var_name) + 60));
 				sprintf(error, "Error : The variable %s is not declared", var.var_name);
@@ -840,7 +836,7 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 				sprintf(error, "Error : The variable %s is not declared", expr.var_name);
 				createError(error);
 			}
-      
+
 	  		if (strcmp(var.type, "int") == 0) updateVar(var.var_name, expr.value);
 			else updateListVar(var.var_name, var.indexes, expr.value);
 			
@@ -875,8 +871,8 @@ affectation : // sous-arbres : := -> nom_var, := -> EXPR
 			$$ = node;
 		}
 ;
-bloc :
-	'{' liste_declarations liste_instructions '}'	// node BLOC
+bloc:
+	'{' liste_declarations liste_instructions '}'
 		{
 			char* nodeName = malloc(sizeof(char) * 40);
 			sprintf(nodeName, "node_bloc_%d", *nodeIndex);
@@ -908,7 +904,7 @@ bloc :
 			$$ = node;
 		}
 ;
-appel :
+appel:
 	IDENTIFICATEUR '(' liste_expressions ')' ';'
 	{
 		char *str = $1;
@@ -1051,7 +1047,7 @@ variable:
 			$$ = node;
 		}
 ;
-expression:	// var et const = node, binop = sous arbre
+expression:
 		'(' expression ')' { $$ = $2;}
 	|	expression binary_op expression %prec OP
 		{
@@ -1138,7 +1134,6 @@ expression:	// var et const = node, binop = sous arbre
 
 			free(code);
 			free(nodeName);
-			
 			
 			$$ = node;
 		}
@@ -1327,7 +1322,7 @@ condition :
 			$$ = node;
 		}
 	|	'(' condition ')' { $$ = $2; }
-	|	expression binary_comp expression 
+	|	expression binary_comp expression
 		{ 
 			char *nodeName = (char*) malloc(sizeof(char) * 40);
 			sprintf(nodeName, "node_comp_%d", *nodeIndex);

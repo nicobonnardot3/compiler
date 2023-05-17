@@ -6,7 +6,7 @@
 #include "hashTable/HashTable.h"
 
 int yylex();
-int column = 1;
+int column = 0;
 int countColumns(char *str);
 int countLines(char *str);
 extern void yyerror (char const *s);
@@ -31,7 +31,7 @@ IS                      (u|U|l|L)*
 
 "{"                     { createScope(); column += 1; return *yytext; }    
 "}"                     { deleteScope(); column += 1; return *yytext; }
-[:;=,]                { column += 1; return *yytext; }
+[:;=,]                  { column += 1; return *yytext; }
 
 "int"                   { column += 3; return INT; }
 "void"                  { column += 4; return VOID; }
@@ -68,12 +68,12 @@ IS                      (u|U|l|L)*
 "*"                     { column += 1; return MUL; }
 "/"                     { column += 1; return DIV; }
 
-"&&"                     { column += 1; return BAND; }
-"||"                     { column += 1; return BOR; }
+"&&"                    { column += 1; return BAND; }
+"||"                    { column += 1; return BOR; }
 ">>"                    { column += 2; return RSHIFT; }
 "<<"                    { column += 2; return LSHIFT; }
-"&"                    { column += 2; return LAND; }
-"|"                    { column += 2; return LOR; }
+"&"                     { column += 2; return LAND; }
+"|"                     { column += 2; return LOR; }
 
 "<"                     { column += 1; return LT; }
 ">"                     { column += 1; return GT; }
@@ -97,7 +97,6 @@ IS                      (u|U|l|L)*
 %%
 
 int yywrap (void) {return 1;}
-
 
 int countColumns(char *str) {
     int count = 0;
