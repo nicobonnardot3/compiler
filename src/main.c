@@ -58,13 +58,13 @@ int main(int argc, char **argv) {
 }
 
 void printfHelpMessage() {
-    printf("Usage: ./minigcc [options] <input file> [output file]\n\n");
+    printf("Usage: ./minigcc [options] <input file> [output file]\n");
+    printf("\tOutput file defaults to output.dot\n");
+    printf("\tExample: ./minigcc test.c out.dot\n\n");
     printf("\tOptions:\n");
     printf("\t\t-h, --help\t\tPrints this help message\n");
     printf("\t\t-v, --version\t\tPrints the version\n");
     printf("\t\t-toPdf\t\t\tConverts the output file to pdf\n\n");
-    printf("\tOutput file defaults to output.dot\n");
-    printf("\tExample: ./minigcc test.c out.dot\n");
 }
 
 void outputToPdf() {
