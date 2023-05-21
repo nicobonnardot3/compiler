@@ -22,7 +22,7 @@ _if building with cmake:_
 sudo apt install cmake
 ```
 
-## building
+## Building
 
 - Compile with cmake 3.18 or more:
 
