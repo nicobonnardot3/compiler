@@ -53,7 +53,7 @@ _Output file is optional and defaults to output.dot_
 
 - `-v` or `--version`: print version
 
-- `-ToPdf`: generate a pdf file from the output dot file
+- `-toPdf`: generate a pdf file from the output dot file
 
 ### Example
 
